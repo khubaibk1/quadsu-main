@@ -1,0 +1,52 @@
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+    }
+
+    // 1. Force all Kotlin tasks to use JVM 17
+    tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+        kotlinOptions {
+            jvmTarget = "17"
+        }
+    }
+}
+
+rootProject.buildDir = "../build"
+
+subprojects {
+    project.buildDir = "${rootProject.buildDir}/${project.name}"
+
+    afterEvaluate { project ->
+        if (project.hasProperty('android')) {
+            project.android {
+                // 2. Fix namespace issue (existing code)
+                if (namespace == null) {
+                    def manifest = project.file("src/main/AndroidManifest.xml")
+                    def packageName = null
+                    if (manifest.exists()) {
+                        def xml = new XmlSlurper().parse(manifest)
+                        packageName = xml.@package.text()
+                    }
+                    if (packageName != null && !packageName.isEmpty()) {
+                        namespace = packageName
+                    }
+                }
+
+                // 3. FORCE JAVA 17 for all plugins (This fixes the error)
+                compileOptions {
+                    sourceCompatibility = JavaVersion.VERSION_17
+                    targetCompatibility = JavaVersion.VERSION_17
+                }
+            }
+        }
+    }
+}
+
+subprojects {
+    project.evaluationDependsOn(":app")
+}
+
+tasks.register("clean", Delete) {
+    delete rootProject.buildDir
+}

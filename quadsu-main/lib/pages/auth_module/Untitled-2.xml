@@ -1,0 +1,13 @@
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:i3l="http://i3logix.com">
+<soapenv:Header/>
+<soapenv:Body>
+<i3l:getSelections>
+<userName>nationwidedrug</userName>
+<password>Fa7qhGzR7T3h5WD0yJ3D</password>
+<orgId>681254</orgId>
+<poolName>NDC Consortium Pool</poolName>
+<cycleStartDate>2025-01-01</cycleStartDate>
+<periodStartDate>2025-10-01</periodStartDate>
+</i3l:getSelections>
+</soapenv:Body>
+</soapenv:Envelope>

@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "688266075693",
+    "project_id": "xenon-depth-470703-d5",
+    "storage_bucket": "xenon-depth-470703-d5.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:688266075693:android:8ccbb2eb2eea0a965422a4",
+        "android_client_info": {
+          "package_name": "com.quadsu.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "688266075693-8efkv6p8vo6q0rmnmvm0jaovdfp7opj2.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAl4xKz3PV_J_3Mzo1osH1SZjq5z76G3N0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "688266075693-8efkv6p8vo6q0rmnmvm0jaovdfp7opj2.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

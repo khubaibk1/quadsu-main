@@ -1,0 +1,3285 @@
+I want my old home secreen to have latest ui for, however the backend funcitonality, the navigation will be same as in old one, the routing should same, just we updated ui for respective partt
+
+old home
+import 'dart:async';
+
+import 'package:flutter/cupertino.dart';
+import 'package:flutter_paypal/flutter_paypal.dart';
+import 'package:provider/provider.dart';
+import 'package:quadsu_app/constants/global_data.dart';
+import 'package:quadsu_app/constants/my_colors.dart';
+import 'package:quadsu_app/constants/my_image_url.dart';
+import 'package:quadsu_app/constants/sized_box.dart';
+import 'package:quadsu_app/constants/types/user_type.dart';
+import 'package:quadsu_app/functions/custom_time_functions.dart';
+import 'package:quadsu_app/functions/print_function.dart';
+import 'package:quadsu_app/modal/student_dashboard_model.dart';
+import 'package:quadsu_app/pages/bottom_sheet/scheduled_details.dart';
+import 'package:quadsu_app/provider/dash_board_provider.dart';
+import 'package:quadsu_app/provider/my_auth_provider.dart';
+import 'package:quadsu_app/provider/search_guide_provider.dart';
+import 'package:quadsu_app/services/custom_navigation_services.dart';
+import 'package:quadsu_app/services/metting_services/meeting_video_call_screen.dart';
+import 'package:quadsu_app/widget/app_specific/custom_drawer.dart';
+import 'package:quadsu_app/widget/custom_appbar.dart';
+import 'package:quadsu_app/widget/custom_button.dart';
+import 'package:quadsu_app/widget/custom_gesture_detector.dart';
+import 'package:quadsu_app/widget/custom_image.dart';
+import 'package:quadsu_app/widget/custom_scaffold.dart';
+import 'package:quadsu_app/widget/custom_text.dart';
+import 'package:quadsu_app/widget/custom_text_field.dart';
+import 'package:quadsu_app/widget/show_snackbar.dart';
+import '../../functions/showCustomBottomSheet.dart';
+import '../../provider/bottom_tabbar_provider.dart';
+import '../../services/pay_pal_service.dart';
+import '../../widget/app_specific/custom_shadow_container.dart';
+import '../commons/video_call_screen.dart';
+import 'guide_profile_screen.dart';
+
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  TextEditingController searchController = TextEditingController();
+  Timer? timer;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback(
+      (timeStamp) async {
+
+
+
+
+
+
+       timer?.cancel();
+        DashBoardProvider dashBoardProvider =
+            Provider.of<DashBoardProvider>(context, listen: false);
+        await dashBoardProvider.getStudentDashBoard();
+        timer=Timer.periodic(const Duration(seconds: 10),(timer) async {
+          if(userDataNotifier.value== null)
+          {
+            timer.cancel();
+          }
+          else
+          {
+            await dashBoardProvider.getStudentDashBoard(showLoader: false);
+
+          }
+        },);
+      },
+    );
+  }
+
+
+  @override
+  void dispose() {
+    super.dispose();
+    timer?.cancel();
+    print("home screen dispose");
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomScaffold(
+      appBar: CustomAppBar(
+        isBackIcon: false,
+        leadingWidth: 55,
+        leadImageUrl: MyImagesUrl.image04,
+        titleText: 'HOME',
+        centerTitle: true,
+        isNotificationIcon: userDataNotifier.value!=null,
+      ),
+      drawer: const CustomDrawer(),
+      body: Consumer<DashBoardProvider>(
+          builder: (context, dashBoardProvider, child) {
+        if (dashBoardProvider.studentDashboard != null) {
+          return SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 20),
+              child: Column(
+                children: [
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 20, vertical: 20),
+                    decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(30),
+                        image: const DecorationImage(
+                            image: AssetImage(
+                              MyImagesUrl.bg_image02,
+                            ),
+                            fit: BoxFit.fill),
+                        boxShadow: [
+                          BoxShadow(
+                              color: MyColors.blackColor.withOpacity(0.06),
+                              blurRadius: 7)
+                        ]),
+                    child: Column(
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  CustomText.smallText(
+                                    Provider.of<MyAuthProvider>(context,listen: false).bannerTitle.toUpperCase(),
+                                    //'EXCELLENCE IN EDUCATION',
+                                    color: MyColors.primaryColor,
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 10,
+                                  ),
+
+
+                                ],
+                              ),
+                            ),
+                            const Padding(
+                              padding: EdgeInsets.only(top: 10, left: 10),
+                              child: CustomImage(
+                                imageUrl: MyImagesUrl.image01,
+                                height: 85,
+                                width: 85,
+                                isShowStackImage: true,
+                                fileType: CustomFileType.asset,
+                              ),
+                            )
+
+
+                          ],
+                        ),
+                        vSizedBox,
+                        CustomText.bodyText1(
+                          Provider.of<MyAuthProvider>(context,listen: false).bannerSubtitle,
+                          // 'Explore every campus and meet students to give you a virtual tour when it’s convenient for you.',
+                          color: MyColors.primaryColor,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 18,
+                        ),
+                        vSizedBox2,
+                        CustomTextField(
+                          controller: searchController,
+                          contentPaddingVertical: 0,
+                          contentPaddingHorizonatly: 12,
+                          borderRadius: 10,
+                          hintColor: MyColors.blackColor.withOpacity(0.4),
+                          hintTextFontSize: 13,
+                          fontSize: 13,
+                          borderColor: MyColors.transparent,
+                          hintText: 'Browse by school or subject',
+                          fillColor: MyColors.whiteColor,
+                          suffix: Container(
+                            height: 35,
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 13, vertical: 6),
+                            decoration: const BoxDecoration(
+                                color: MyColors.primaryColor,
+                                borderRadius: BorderRadius.horizontal(
+                                    right: Radius.circular(10))),
+                            child: CustomGestureDetector(
+                              onTap: () {
+                                BottomTabBarProvider bottomTabBarProvider=Provider.of<BottomTabBarProvider>(context,listen: false);
+                                SearchGuideProvider searchGuideProvider=Provider.of<SearchGuideProvider>(context,listen: false);
+                                searchGuideProvider.resetAllValues();
+                                searchGuideProvider.searchKeyWord=searchController.text.trim();
+                                bottomTabBarProvider.changeIndex(index: 1);
+                              },
+                              child: Image.asset(MyImagesUrl.search_outline,
+                                  width: 16),
+                            ),
+                          ),
+                        )
+                      ],
+                    ),
+                  ),
+                  if(userDataNotifier.value != null)
+                    vSizedBox2,
+                  if(userDataNotifier.value != null)
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Wrap(
+                          children: [
+                            CustomText.headingSmall(
+                              'My Scheduled Sessions',
+                              fontWeight: FontWeight.w600,
+                            ),
+                            CustomText.smallText(
+                              ' (All Times in EST)',
+                            ),
+                          ],
+                        ),
+                      ),
+                        CustomGestureDetector(
+                      onTap: () {
+                        // showSnackbar("Coming soon!");
+                        BottomTabBarProvider bottomTabBarProvider=Provider.of<BottomTabBarProvider>(context,listen: false);
+                        bottomTabBarProvider.changeIndex(index: 3);
+                      },
+                      child: Row(
+                        children: [
+                          CustomText.smallText(
+                            'See more',
+                            color: MyColors.blackColor40,
+                          ),
+                          Icon(
+                            CupertinoIcons.forward,
+                            color: MyColors.blackColor40,
+                            size: 16,
+                          )
+                        ],
+                      ),
+                    )
+                    ],
+                  ),
+                  vSizedBox,
+                  if(dashBoardProvider.scheduledSessions.isNotEmpty&& userDataNotifier.value != null)
+                  SizedBox(
+                    height: 150,
+                    child: ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: dashBoardProvider.scheduledSessions.length,
+                      itemBuilder: (context, index) {
+                        ScheduledSessions scheduleSession=dashBoardProvider.scheduledSessions[index];
+
+                        return Padding(
+                          padding: const EdgeInsets.only(right: globalHorizontalPadding),
+                          child: CustomGestureDetector(
+                            onTap: (){
+                              CustomNavigation.push(context: context, screen:  GuideProfileScreen(guideId: scheduleSession.guideData?.id??0,));
+                            },
+                            child: CustomShadowContainer(
+                              width: 350,
+                              child: Column(
+                                children: [
+                                  Row(
+                                    children: [
+                                       CustomImage(
+                                        imageUrl:scheduleSession.guidePrefrence?.profileImage??'' ,
+                                        staticBlurImage: MyImagesUrl.profileImage,
+                                        height: 70,
+                                        width: 70,
+                                        isShowStackImage: true,
+                                        fileType: CustomFileType.network,
+                                      ),
+                                      hSizedBox,
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.spaceBetween,
+                                              children: [
+                                                CustomText.bodyText2(
+                                                  "${scheduleSession.guideData?.firstName??""} ${scheduleSession.guideData?.lastName??""}",
+                                                  fontWeight: FontWeight.w600,
+                                                ),
+                                                // CustomText.smallText(
+                                                //
+                                                //
+                                                //   CustomTimeFunctions.convertDateFormat(scheduleSession.date??""),
+                                                //
+                                                //   color: MyColors.blackColor40,
+                                                // ),
+                                              ],
+                                            ),
+                                            vSizedBox05,
+                                            Row(
+                                              children: [
+                                                Column(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  children: [
+                                                    CustomText.smallText(
+                                                      'Booking ID:',
+                                                    ),
+                                                    vSizedBox02,
+                                                    CustomText.smallText(
+                                                      'Booked  Date:',
+                                                    ),
+                                                    vSizedBox02,
+                                                    CustomText.smallText(
+                                                      'Booking time:',
+                                                    ),
+                                                  ],
+                                                ),
+                                                hSizedBox,
+                                                Column(
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  children: [
+                                                    CustomText.smallText(
+                                                      '#${scheduleSession.bookingId}',
+                                                    ),
+                                                    vSizedBox02,
+                                                    CustomText.smallText(
+                                                      //CustomTimeFunctions.convertIsoToDate(scheduleSession.createdAt??""),
+                                                      CustomTimeFunctions.convertDateFormat(scheduleSession.date??""),                                                  ),
+                                                    vSizedBox02,
+                                                    CustomText.smallText(
+                                                      '${CustomTimeFunctions.convertTo12HourFormat(scheduleSession.startTime??"")} to ${CustomTimeFunctions.convertTo12HourFormat(scheduleSession.endTime??"")}',
+                                                    ),
+                                                  ],
+                                                ),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  vSizedBox05,
+                                  Row(
+                                    mainAxisAlignment: scheduleSession.meetingUrl.isNotEmpty?MainAxisAlignment.spaceBetween:MainAxisAlignment.end,
+                                    children: [
+                                      if ( scheduleSession.meetingUrl.isNotEmpty)
+                                        CustomButton(
+                                          text: 'Join call',
+                                          onTap: () async {
+
+                                              await CustomNavigation.push(
+                                                  context: context,
+                                                  screen:  MeetingVideoCallScreen(channelId: scheduleSession.bookingId!.toString(), meetingTitle: 'Meeting', isCreate: false, meetingUrl: scheduleSession.meetingUrl,));
+                                              await dashBoardProvider.getStudentDashBoard();
+
+                                          },
+                                          isFlexible: true,
+                                          borderRadius: 5,
+                                          fontSize: 11,
+                                          verticalMargin: 0,
+                                          verticalPadding: 4,
+                                          color: MyColors.greenColor,
+                                          horizontalPadding: 7,
+                                        ),
+
+                                      CustomButton(
+                                        onTap: () {
+                                           showCustomBottomSheet(
+                                             context: context,
+                                             child: ScheduledDetailsSheet(scheduledSessions: scheduleSession,));
+                                        },
+                                        verticalMargin: 0,
+                                        text: 'Details',
+                                        isFlexible: true,
+                                        fontSize: 11,
+                                        borderRadius: 5,
+                                        horizontalPadding: 8,
+                                        verticalPadding: 3,
+                                      ),
+                                    ],
+                                  )
+                                ],
+                              ),
+                            ),
+                          ),
+                        );
+                      }
+                    ),
+                  )
+                  else if(userDataNotifier.value != null)
+                    CustomShadowContainer(
+                      horizontalPadding: 15,
+                      verticalPadding: 14,
+                      child: Row(
+                        children: [
+                          CustomText.smallText(
+                            "No sessions are scheduled.",
+                            increamentFontSize: 1,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ],
+                      ),
+                    ),
+
+
+                  vSizedBox2,
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      CustomText.headingSmall(
+                        'Top Categories',
+                        fontWeight: FontWeight.w600,
+                      ),
+                      // GestureDetector(
+                      //   behavior: HitTestBehavior.opaque,
+                      //   onTap: () {
+                      //     CustomNavigation.push(
+                      //         context: context,
+                      //         screen: const CategoriesScreen());
+                      //   },
+                      //   child: Row(
+                      //     children: [
+                      //       CustomText.smallText(
+                      //         'See more',
+                      //         color: MyColors.blackColor40,
+                      //       ),
+                      //       Icon(
+                      //         CupertinoIcons.forward,
+                      //         color: MyColors.blackColor40,
+                      //         size: 16,
+                      //       )
+                      //     ],
+                      //   ),
+                      // ),
+                    ],
+                  ),
+                  vSizedBox,
+                  if(dashBoardProvider.category.isNotEmpty)
+                    SizedBox(
+                    width: double.infinity,
+                    height: 125,
+                    child: ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: dashBoardProvider.category.length,
+                        itemBuilder: (context, index) {
+                          Category category=dashBoardProvider.category[index];
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 5, vertical: 6),
+                            child: CustomGestureDetector(
+                              onTap: () {
+                                BottomTabBarProvider bottomTabBarProvider=Provider.of<BottomTabBarProvider>(context,listen: false);
+                                SearchGuideProvider searchGuideProvider=Provider.of<SearchGuideProvider>(context,listen: false);
+                                searchGuideProvider.resetAllValues();
+                                searchGuideProvider.searchCategoryId=category.id.toString();
+                                bottomTabBarProvider.changeIndex(index: 1);
+                              },
+                              child: SizedBox(
+                                width: 130,
+                                child: CustomShadowContainer(
+                                  verticalPadding: 4,
+                                  horizontalPadding: 4,
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      CustomImage(
+                                        imageUrl: category.image??"",
+                                        height: 40,
+                                        width: 40,
+                                        showLoader: false,
+                                        isBackgroundImage: false,
+                                        isShowStackImage: false,
+                                        fileType: CustomFileType.network,
+                                      ),
+                                      vSizedBox02,
+                                      CustomText.smallText(
+                                        textAlign: TextAlign.center,
+                                        category.title??"",
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                      CustomText.smallText(
+                                        '${category.count??0} items',
+                                        fontSize: 11,
+                                        color: MyColors.blackColor40,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          );
+                        }),
+                  )
+                  else
+                      CustomShadowContainer(
+                        horizontalPadding: 15,
+                        verticalPadding: 14,
+                        child: Row(
+                          children: [
+                            CustomText.smallText(
+                              "No category found.",
+                              increamentFontSize: 1,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ],
+                        ),
+                      ),
+                      vSizedBox,
+
+                  if(userDataNotifier.value != null)
+
+                    Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      CustomText.headingSmall(
+                        'My Guides',
+                        fontWeight: FontWeight.w600,
+                      ),
+                      CustomGestureDetector(
+                        onTap: () {
+                          BottomTabBarProvider bottomTabBarProvider=Provider.of<BottomTabBarProvider>(context,listen: false);
+                          bottomTabBarProvider.changeIndex(index: 2);
+                        },
+                        child: Row(
+                          children: [
+                            CustomText.smallText(
+                              'See more',
+                              color: MyColors.blackColor40,
+                            ),
+                            Icon(
+                              CupertinoIcons.forward,
+                              color: MyColors.blackColor40,
+                              size: 16,
+                            )
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  if(userDataNotifier.value != null)
+                    vSizedBox,
+                  if(dashBoardProvider.guide.isNotEmpty&& userDataNotifier.value != null)
+                    SizedBox(
+                    width: double.infinity,
+                    height: 130,
+                    child: ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: dashBoardProvider.guide.length,
+                        itemBuilder: (context, index) {
+                          Guide guide=dashBoardProvider.guide[index];
+
+                          return GestureDetector(
+                            onTap: () {
+                              CustomNavigation.push(
+                                  context: context,
+                                  screen:  GuideProfileScreen(guideId: guide.id!,));
+                            },
+                            child: Padding(
+                              padding:  const EdgeInsets.symmetric(
+                                  horizontal: 6, vertical: 6),
+                              child: SizedBox(
+                                width: 110,
+                                child: CustomShadowContainer(
+                                  verticalPadding: 4,
+                                  horizontalPadding: 4,
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      CustomImage(
+                                        imageUrl: guide.guidePrefrence?.profileImage??"",
+                                        height: 50,
+                                        width: 50,
+                                        showLoader: false,
+                                        isBackgroundImage: false,
+                                        isShowStackImage: false,
+                                        fileType: CustomFileType.network,
+                                      ),
+
+                                      vSizedBox02,
+                                      CustomText.smallText(
+                                        "${guide.firstName??""} ${guide.lastName??""}",
+                                          textAlign: TextAlign.center,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          );
+                        }),
+                  )
+                  else if(userDataNotifier.value != null)
+                    CustomShadowContainer(
+                      horizontalPadding: 15,
+                      verticalPadding: 14,
+                      child: Row(
+                        children: [
+                          CustomText.smallText(
+                            "No guides found.",
+                            increamentFontSize: 1,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ],
+                      ),
+                    ),
+
+                ],
+              ),
+            ),
+          );
+        } else {
+          return const SizedBox();
+        }
+      }),
+    );
+  }
+}
+
+
+ITS OLD GUIDE PROFILE SECREEN
+
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+import 'package:quadsu_app/constants/global_data.dart';
+import 'package:quadsu_app/extensions/capitalise_first_letter.dart';
+import 'package:quadsu_app/functions/custom_time_functions.dart';
+import 'package:quadsu_app/modal/student_dashboard_model.dart';
+import 'package:quadsu_app/pages/commons/video_player.dart';
+import 'package:quadsu_app/provider/book_guide_provider.dart';
+import 'package:quadsu_app/provider/dash_board_provider.dart';
+import 'package:quadsu_app/provider/my_auth_provider.dart';
+import 'package:quadsu_app/widget/custom_appbar.dart';
+import 'package:quadsu_app/widget/custom_button.dart';
+import 'package:quadsu_app/widget/custom_confirmation_dialog.dart';
+import 'package:quadsu_app/widget/custom_gesture_detector.dart';
+import 'package:quadsu_app/widget/custom_scaffold.dart';
+import '../../constants/my_colors.dart';
+import '../../constants/my_image_url.dart';
+import '../../constants/sized_box.dart';
+import '../../functions/showCustomBottomSheet.dart';
+import '../../services/custom_navigation_services.dart';
+import '../../widget/app_specific/custom_shadow_container.dart';
+import '../../widget/custom_image.dart';
+import '../../widget/custom_rating.dart';
+import '../../widget/custom_text.dart';
+import '../../widget/show_snackbar.dart';
+import '../bottom_sheet/request_instant_booking.dart';
+import 'contact_to_guide_screen.dart';
+
+class GuideProfileScreen extends StatefulWidget {
+  final int guideId;
+  const GuideProfileScreen({super.key, required this.guideId});
+
+  @override
+  State<GuideProfileScreen> createState() => _GuideProfileScreenState();
+}
+
+class _GuideProfileScreenState extends State<GuideProfileScreen> {
+
+  ValueNotifier<Guide?> guide=ValueNotifier(null);
+
+  @override
+  void initState() {
+    super.initState();
+WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
+  DashBoardProvider dashBoardProvider =
+  Provider.of<DashBoardProvider>(context, listen: false);
+   guide.value=await dashBoardProvider.getGuideProfile(guideId: widget.guideId);
+   if( guide.value?.isDelete == 1)
+     {
+       showCustomConfirmationDialog(
+         isCancelButton: false,
+         headingMessage: "Sorry",
+         headingMessageColor: MyColors.primaryColor,
+         description:"This guide is no longer available. We're sorry for the inconvenience. Please try contacting another guide or try again later."
+         ,descriptionMessageFontSize: 14,
+         okButtonText: "Ok",
+         okButtonClick: () {
+           CustomNavigation.pop(context);
+           CustomNavigation.pop(context);
+         },
+         horizontalPadding: 16,
+       );
+
+     }
+},);
+
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomScaffold(
+      appBar: CustomAppBar(
+        titleText: 'Profile',
+      ),
+      body: ValueListenableBuilder(
+        valueListenable: guide,
+        builder:(context, guideValue, child)  {
+          if(guideValue==null  )
+            {
+              return const SizedBox();
+            }
+
+          if( guideValue?.isDelete == 1)
+            {
+              return const SizedBox();
+            }
+
+
+          return Consumer<MyAuthProvider>(
+
+            builder:(context, myAuthProvider, child) {
+
+              List<String> selectedLanguageIds =
+                  guideValue.guidePrefrence?.guideLanguage.split(',') ??
+                      [];
+
+              List<String> selectedLanguages = myAuthProvider.globalLanguages
+                  .where((language) =>
+                  selectedLanguageIds.contains(language['id'].toString()))
+                  .map((lan) => lan['language'] as String)
+                  .toList();
+
+              List<String> selectedUniversityIds =
+                  guideValue.guidePrefrence?.university.split(',') ?? [];
+
+              List<String> selectedUniversities = myAuthProvider.globalUniversity
+                  .where((university) =>
+                  selectedUniversityIds.contains(university['id'].toString()))
+                  .map((uni) => uni['university_name'] as String)
+                  .toList();
+
+              List<String> hobbies =guideValue.guidePrefrence?.hobbies.trim().isEmpty==true?[]:guideValue.guidePrefrence?.hobbies.split(',')??[];
+
+              List<String> studentTypes =
+                  guideValue.guidePrefrence?.studentTypes.split(',') ?? [];
+
+              return SingleChildScrollView(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: globalHorizontalPadding-5),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        CustomImage(
+                          imageUrl: guideValue.guidePrefrence?.profileImage??"",
+                          height: 75,
+                          width: 75,
+                          showLoader: false,
+                          isBackgroundImage: false,
+                          isShowStackImage: false,
+                          fileType: CustomFileType.network,
+                        ),
+                        hSizedBox,
+                        Flexible(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              CustomText.heading(
+                              '${guideValue.firstName??""} ${guideValue.lastName??""}',
+                                fontWeight: FontWeight.w600,
+                              ),
+                              vSizedBox05,
+                              Wrap(
+                                children: [
+                                  Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Image.asset(
+                                        MyImagesUrl.star_fill,
+                                        width: 12,
+                                      ),
+                                      hSizedBox02,
+                                      CustomText.smallText(
+                                        '${guideValue.avgRatting} (${guideValue.guideReviews.length} reviews)',
+                                        color: MyColors.blackColor40,
+                                      ),
+                                      hSizedBox,
+                                    ],
+                                  ),
+                                  Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Image.asset(
+                                        MyImagesUrl.clock_icon,
+                                        width: 12,
+                                      ),
+                                      hSizedBox02,
+                                      CustomText.smallText(
+                                        guideValue.guidePrefrence?.workingHoursCalculated.isNotEmpty==true?"${guideValue.guidePrefrence?.workingHoursCalculated.split(":").first} hr ${guideValue.guidePrefrence?.workingHoursCalculated.split(":").last} min of guiding":"0 hr 00min of guiding",
+                                        color: MyColors.blackColor40,
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                              vSizedBox05,
+                              CustomText.smallText(
+                                'Hourly Rate: \$${guideValue.guidePrefrence?.hourlyRate} / hour',
+                                fontWeight: FontWeight.w500,
+                              ),
+                              vSizedBox05,
+                              Row(
+                                children: [
+                                  CustomButton(
+                                    text: 'Contact me',
+                                    onTap: () {
+                                      if(userDataNotifier.value ==null)
+                                        {
+                                          Provider.of<MyAuthProvider>(context,listen: false).logout(context);
+                                          return;
+                                        }
+
+                                      BookGuideProvider bookGuideProvider=Provider.of(context,listen: false);
+                                      bookGuideProvider.selectedGuide=guideValue;
+                                      CustomNavigation.push(context: context, screen: const ContactToGuideScreen());
+
+                                    },
+                                    isFlexible: true,
+                                    fontWeight: FontWeight.w600,
+                                    borderRadius: 4,
+                                    fontSize: 10,
+                                    verticalMargin: 0,
+                                    verticalPadding: 10,
+                                    horizontalPadding: 11,
+                                    suffix: const Icon(
+                                      Icons.arrow_forward,
+                                      size: 15,
+                                      color: MyColors.whiteColor,
+                                    ),
+                                  ),
+                                  hSizedBox05,
+                                  if(guideValue.guidePrefrence?.instantBookingAvailability==1)
+                                  CustomButton(
+                                    text: 'Request Instant Booking',
+                                    onTap: () async {
+
+                                      if(userDataNotifier.value ==null)
+                                      {
+                                        Provider.of<MyAuthProvider>(context,listen: false).logout(context);
+                                        return;
+                                      }
+
+                                      DateTime now = DateTime.now();
+                                      now=now.subtract(now.timeZoneOffset);
+                                      now=now.add(Duration(minutes: timezoneOffset));
+
+                                      print("dtdatdtatadta::::::${now}");
+
+                                      DateTime startOfHour = DateTime(now.year, now.month, now.day, now.hour);
+
+                                      print("dtdatdtatadta::::::${startOfHour}");
+                                      // Add 1 hour
+                                      DateTime updatedTime = startOfHour.add(const Duration(hours: 1));
+                                      print("dtdatdtatadta::::::${updatedTime}");
+
+                                      // Format the time to 'hh:mm A' (12-hour format with AM/PM)
+                                      String formattedTime = DateFormat('hh:mm a').format(updatedTime);
+
+                                      showCustomBottomSheet(
+                                          context: context,
+                                          child:   RequestInstantBooking(dateTime: formattedTime, guideId: guideValue.id.toString(),));
+                                    },
+                                    isFlexible: true,
+                                    fontWeight: FontWeight.w600,
+                                    borderRadius: 4,
+                                    fontSize: 10,
+                                    verticalMargin: 0,
+                                    verticalPadding: 10,
+                                    horizontalPadding: 11,
+                                    suffix: const Icon(
+                                      Icons.arrow_forward,
+                                      size: 15,
+                                      color: MyColors.whiteColor,
+                                    ),
+                                  ),
+                                ],
+                              )
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    vSizedBox2,
+                    CustomText.bodyText1('FEATURED REVIEW:',
+                      increamentFontSize: 1,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    vSizedBox,
+                    CustomShadowContainer(
+                      horizontalPadding: 15,
+                      verticalPadding: 14,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if(guideValue.guidePrefrence?.tagLine!= "")
+                          CustomText.bodyText1( guideValue.guidePrefrence?.tagLine??"",
+                            increamentFontSize: 1,
+                            fontWeight: FontWeight.w600,
+                            color: MyColors.primaryColor,
+                          ),
+                          if(guideValue.guidePrefrence?.tagLine!= "")
+                            vSizedBox05,
+
+                          CustomText.smallText(
+                           guideValue.guidePrefrence?.profileHeadline??"",
+                               color: MyColors.blackColor50,
+                          ),
+                        ],
+                      ),
+                    ),
+                    vSizedBox2,
+                    // CustomText.bodyText2('What makes me a unique guide and what I like to talk about.',
+                    //   increamentFontSize: 1,
+                    //   fontWeight: FontWeight.w600,
+                    // ),
+                    // vSizedBox,
+                    // CustomShadowContainer(
+                    //   horizontalPadding: 15,
+                    //   verticalPadding: 14,
+                    //   child: Column(
+                    //     crossAxisAlignment: CrossAxisAlignment.start,
+                    //     children: [
+                    //       CustomText.smallText('Related subjects:',
+                    //         fontWeight: FontWeight.w500,
+                    //         increamentFontSize: 1,
+                    //       ),
+                    //       vSizedBox05,
+                    //       vSizedBox02,
+                    //       Row(
+                    //         children: [
+                    //           const Icon(Icons.circle_outlined,
+                    //             size: 9,
+                    //           ),
+                    //           hSizedBox,
+                    //           CustomText.smallText(
+                    //             "Business",
+                    //           ),
+                    //         ],
+                    //       ),
+                    //       vSizedBox02,
+                    //       Row(
+                    //         children: [
+                    //           const Icon(Icons.circle_outlined,
+                    //             size: 9,
+                    //           ),
+                    //           hSizedBox,
+                    //           CustomText.smallText(
+                    //             "Political Science",
+                    //           ),
+                    //         ],
+                    //       ),
+                    //       vSizedBox02,
+                    //       Row(
+                    //         children: [
+                    //           const Icon(Icons.circle_outlined,
+                    //             size: 9,
+                    //           ),
+                    //           hSizedBox,
+                    //           CustomText.smallText(
+                    //             "Economics",
+                    //           ),
+                    //         ],
+                    //       ),
+                    //     ],
+                    //   ),
+                    // ),
+                    // vSizedBox2,
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        CustomText.bodyText2(
+                          'Education',
+                          increamentFontSize: 1,
+                          fontWeight: FontWeight.w600,
+                        ),
+
+                      ],
+                    ),
+                    vSizedBox,
+                    if (guideValue.guidePrefrence!.ugCollegeName.isEmpty &&
+                        guideValue.guidePrefrence!.ugDegreeType.isEmpty &&
+                        guideValue.guidePrefrence!.gCollegeName.isEmpty &&
+                        guideValue.guidePrefrence!.gDegreeType.isEmpty &&
+                        guideValue.guidePrefrence!.gCollegeName2.isEmpty &&
+                        guideValue.guidePrefrence!.gDegreeType2.isEmpty &&
+                        guideValue.guidePrefrence!.teachingCertificate.isEmpty)
+                      CustomShadowContainer(
+                        horizontalPadding: 15,
+                        verticalPadding: 14,
+                        child: Row(
+                          children: [
+                            CustomText.smallText(
+                              "No education records available.",
+                              increamentFontSize: 1,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ],
+                        ),
+                      )
+                    else
+                      CustomShadowContainer(
+                        horizontalPadding: 15,
+                        verticalPadding: 14,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            if (guideValue.guidePrefrence!.ugCollegeName.isNotEmpty)
+                              CustomText.smallText(
+                                "Undergraduate",
+                                increamentFontSize: 1,
+                                fontWeight: FontWeight.w500,
+                              ),
+
+                            if (guideValue.guidePrefrence!.ugCollegeName.isNotEmpty)
+                              vSizedBox05,
+                            if (guideValue.guidePrefrence!.ugCollegeName.isNotEmpty)
+                              vSizedBox02,
+                            if (guideValue.guidePrefrence!.ugCollegeName.isNotEmpty)
+                              Row(
+                                children: [
+                                  const Icon(
+                                    Icons.circle_outlined,
+                                    size: 9,
+                                  ),
+                                  hSizedBox,
+                                  CustomText.smallText(
+                                   "${ guideValue.guidePrefrence!.ugCollegeName} ${guideValue.guidePrefrence!.ugDegreeType.isNotEmpty?"- ${guideValue.guidePrefrence!.ugDegreeType}":""}",
+                                  ),
+                                ],
+                              ),
+
+                            if (guideValue.guidePrefrence!.gCollegeName.isNotEmpty)
+                              vSizedBox,
+                            if (guideValue.guidePrefrence!.gCollegeName.isNotEmpty)
+                              CustomText.smallText(
+                                "Graduate",
+                                increamentFontSize: 1,
+                                fontWeight: FontWeight.w500,
+                              ),
+
+                            if (guideValue.guidePrefrence!.gCollegeName.isNotEmpty)
+                              vSizedBox05,
+                            if (guideValue.guidePrefrence!.gCollegeName.isNotEmpty)
+                              vSizedBox02,
+                            if (guideValue.guidePrefrence!.gCollegeName.isNotEmpty)
+                              Row(
+                                children: [
+                                  const Icon(
+                                    Icons.circle_outlined,
+                                    size: 9,
+                                  ),
+                                  hSizedBox,
+                                  CustomText.smallText(
+                                    "${ guideValue.guidePrefrence!.gCollegeName} ${guideValue.guidePrefrence!.gDegreeType.isNotEmpty?"- ${guideValue.guidePrefrence!.gDegreeType}":""}",
+                                  ),
+                                ],
+                              ),
+
+                            if (guideValue.guidePrefrence!.gCollegeName.isNotEmpty)
+                              vSizedBox,
+                            if (guideValue.guidePrefrence!.gCollegeName.isNotEmpty)
+                              CustomText.smallText(
+                                "Graduate",
+                                increamentFontSize: 1,
+                                fontWeight: FontWeight.w500,
+                              ),
+
+                            if (guideValue.guidePrefrence!.gCollegeName2.isNotEmpty)
+                              vSizedBox05,
+                            if (guideValue.guidePrefrence!.gCollegeName2.isNotEmpty)
+                              vSizedBox02,
+                            if (guideValue.guidePrefrence!.gCollegeName2.isNotEmpty)
+                              Row(
+                                children: [
+                                  const Icon(
+                                    Icons.circle_outlined,
+                                    size: 9,
+                                  ),
+                                  hSizedBox,
+                                  CustomText.smallText(
+                                    "${ guideValue.guidePrefrence!.gCollegeName2} ${guideValue.guidePrefrence!.gDegreeType2.isNotEmpty?"- ${guideValue.guidePrefrence!.gDegreeType2}":""}",
+                                  ),
+                                ],
+                              ),
+
+                            // if (guideValue.guidePrefrence!.teachingCertificate.isNotEmpty)
+                            //   vSizedBox,
+                            //
+                            // if (guideValue.guidePrefrence!.teachingCertificate.isNotEmpty)
+                            //   CustomText.smallText(
+                            //     "Teaching Certificate",
+                            //     increamentFontSize: 1,
+                            //     fontWeight: FontWeight.w500,
+                            //   ),
+                            // if (guideValue.guidePrefrence!.teachingCertificate.isNotEmpty)
+                            //   vSizedBox05,
+                            // if (guideValue.guidePrefrence!.teachingCertificate.isNotEmpty)
+                            //   vSizedBox02,
+                            // if (guideValue.guidePrefrence!.teachingCertificate.isNotEmpty)
+                            //   Row(
+                            //     children: [
+                            //       const Icon(
+                            //         Icons.circle_outlined,
+                            //         size: 9,
+                            //       ),
+                            //       hSizedBox,
+                            //       CustomText.smallText(
+                            //         guideValue.guidePrefrence!.teachingCertificate,
+                            //       ),
+                            //     ],
+                            //   ),
+
+
+
+
+                          ],
+                        ),
+                      ),
+
+
+                    vSizedBox2,
+                    if(selectedLanguages.isNotEmpty)
+
+                      Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        CustomText.bodyText2(
+                          'Languages',
+                          increamentFontSize: 1,
+                          fontWeight: FontWeight.w600,
+                        ),
+
+                      ],
+                    ),
+                    if(selectedLanguages.isNotEmpty)
+                      vSizedBox,
+                    if(selectedLanguages.isNotEmpty)
+                      CustomShadowContainer(
+                      horizontalPadding: 15,
+                      verticalPadding: 14,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          for (int i = 0; i < selectedLanguages.length; i++)
+                            Padding(
+                              padding: EdgeInsets.only(
+                                  bottom: i == selectedLanguages.length - 1
+                                      ? 0
+                                      : 2),
+                              child: Row(
+                                children: [
+                                  const Icon(
+                                    Icons.circle_outlined,
+                                    size: 9,
+                                  ),
+                                  hSizedBox,
+                                  CustomText.smallText(
+                                    selectedLanguages[i],
+                                  ),
+                                ],
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                    if(selectedLanguages.isNotEmpty)
+                      vSizedBox2,
+
+                    if(selectedUniversities.isNotEmpty)
+
+                      Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        CustomText.bodyText2(
+                          'University',
+                          increamentFontSize: 1,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ],
+                    ),
+                    if(selectedUniversities.isNotEmpty)
+                      vSizedBox,
+                    if(selectedUniversities.isNotEmpty)
+                      CustomShadowContainer(
+                      horizontalPadding: 15,
+                      verticalPadding: 14,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          for (int i = 0; i < selectedUniversities.length; i++)
+                            Padding(
+                              padding: EdgeInsets.only(
+                                  bottom: i == selectedUniversities.length - 1
+                                      ? 0
+                                      : 2),
+                              child: Row(
+                                children: [
+                                  const Icon(
+                                    Icons.circle_outlined,
+                                    size: 9,
+                                  ),
+                                  hSizedBox,
+                                  CustomText.smallText(
+                                    selectedUniversities[i],
+                                  ),
+                                ],
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                    if(selectedUniversities.isNotEmpty)
+                    vSizedBox2,
+
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        CustomText.bodyText2(
+                          'Policies',
+                          increamentFontSize: 1,
+                          fontWeight: FontWeight.w600,
+                        ),
+
+                      ],
+                    ),
+                    vSizedBox,
+                    CustomShadowContainer(
+                      horizontalPadding: 15,
+                      verticalPadding: 15,
+                      child: Column(
+                        children: [
+                          Row(
+                            children: [
+                              Expanded(
+                                child: CustomText.smallText(
+                                  'Hourly Rate',
+                                  fontWeight: FontWeight.w400,
+                                ),
+                              ),
+                              Expanded(
+                                child: CustomText.smallText(
+                                  guideValue.guidePrefrence?.hourlyRate ?? "",
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              )
+                            ],
+                          ),
+                          vSizedBox05,
+                          Row(
+                            children: [
+                              Expanded(
+                                child: CustomText.smallText(
+                                  'Session cancellation',
+                                  fontWeight: FontWeight.w400,
+                                ),
+                              ),
+                              Expanded(
+                                child: CustomText.smallText(
+                                 "${guideValue.guidePrefrence
+                                     ?.lessonCancellation ??
+                                     ""} ${guideValue.guidePrefrence
+                                     ?.lessonCancellation!="" &&guideValue.guidePrefrence
+                                     ?.lessonCancellation!=null ?"hours notice required":""}",
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              )
+                            ],
+                          ),
+                          vSizedBox05,
+                          Row(
+                            children: [
+                              Expanded(
+                                child: CustomText.smallText(
+                                  'Hours Available Per Week',
+                                  fontWeight: FontWeight.w400,
+                                ),
+                              ),
+                              Expanded(
+                                child: CustomText.smallText(
+                                  guideValue.guidePrefrence
+                                      ?.hoursAvailablePerWeek ??
+                                      "",
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              )
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    vSizedBox2,
+                    if(studentTypes.isNotEmpty)
+                      CustomText.bodyText2('Student Preference',
+                      fontWeight: FontWeight.w600,
+                      increamentFontSize: 1,
+                    ),
+                    if(studentTypes.isNotEmpty)
+
+                      vSizedBox,
+                    if(studentTypes.isNotEmpty)
+                      CustomShadowContainer(
+                      horizontalPadding: 15,
+                      verticalPadding: 14,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          for (int i = 0; i < studentTypes.length; i++)
+                            Padding(
+                              padding: EdgeInsets.only(
+                                  bottom: i == studentTypes.length - 1
+                                      ? 0
+                                      : 2),
+                              child: Row(
+                                children: [
+                                  const Icon(
+                                    Icons.circle_outlined,
+                                    size: 9,
+                                  ),
+                                  hSizedBox,
+                                  CustomText.smallText(
+                                    studentTypes[i],
+                                  ),
+                                ],
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                    if(studentTypes.isNotEmpty)
+
+                    vSizedBox2,
+
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            CustomText.bodyText2(
+                              'Availability',
+                              increamentFontSize: 1,
+                              fontWeight: FontWeight.w600,
+                            ),
+                            hSizedBox05,
+                            CustomText.smallText(
+                              '(All Times in EST)',
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    vSizedBox,
+                    if(guideValue.guideSchedule.isNotEmpty)
+                      CustomShadowContainer(
+                        horizontalPadding: 15,
+                        verticalPadding: 12,
+                        child:  Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            CustomText.smallText('Available for Instant Booking : ${guideValue.guidePrefrence!.instantBookingAvailability==0?"No":'Yes'}'),
+                            vSizedBox05,
+                            for(int i=0;i<guideValue.guideSchedule.length;i++)
+                              Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 2),
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      child: CustomText.smallText(
+                                        guideValue.guideSchedule[i].day.capitalize(),
+                                        fontWeight: FontWeight.w400,
+                                      ),
+                                    ),
+                                    Expanded(
+                                      child: CustomText.smallText(
+                                        guideValue.guideSchedule[i].isOffDay=="true"?"Off Day":
+                                        '${CustomTimeFunctions.convertTo12HourFormat(guideValue.guideSchedule[i].startTime)} - ${CustomTimeFunctions.convertTo12HourFormat(guideValue.guideSchedule[i].endTime) }',
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    )
+                                  ],
+                                ),
+                              ),
+                          ],
+                        ),
+                      )
+                    else
+                      CustomShadowContainer(
+                        horizontalPadding: 15,
+                        verticalPadding: 15,
+                        child:   Row(
+                          children: [
+                            CustomText.smallText(
+                              "No schedule records available.",
+                              increamentFontSize: 1,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ],
+                        ),
+                      ),
+
+
+
+
+
+
+                    vSizedBox2,
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        CustomText.bodyText2(
+                          '${guideValue.firstName??""} ${guideValue.lastName??""} Videos',
+                          increamentFontSize: 1,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ],
+                    ),
+                    vSizedBox,
+                    if (guideValue.guideVideos.isNotEmpty)
+                      CustomShadowContainer(
+                        horizontalPadding: 14,
+                        verticalPadding: 6,
+                        child: Column(
+                          children: [
+                            for(int i=0; i<guideValue.guideVideos.length;i++)
+                              Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 8),
+                                child: CustomGestureDetector(
+                                  onTap: (){
+                                    CustomNavigation.push(context: context, screen: CustomVideoPlayer(
+                                      url:guideValue.guideVideos[i].videoUrl,
+                                      title: "Preview",
+                                    ));
+                                  },
+                                  child: Row(children: [
+                                    CustomImage(imageUrl:guideValue.guideVideos[i].videoThumbnail,
+                                      fileType: CustomFileType.network,
+                                      width: 60, height: 60,
+                                    ),
+                                    hSizedBox,
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          CustomText.bodyText2(guideValue.guideVideos[i].videoTitle,
+                                            maxLines: 2,
+                                          ) ,
+                                          CustomText.smallText(CustomTimeFunctions.formatDateInHHMMDD(DateTime.parse(guideValue.guideVideos[i].createdAt.toString())),
+                                            color: MyColors.blackColor50,
+                                            fontSize: 11,
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+
+                                    Consumer<MyAuthProvider>(
+                                      builder: (context, authProvider, child) =>
+                                          CustomButton(text: ' Play ',
+                                            onTap: ()async{
+                                              CustomNavigation.push(context: context, screen: CustomVideoPlayer(
+                                                url:guideValue.guideVideos[i].videoUrl,
+                                                title: "Preview",
+                                              ));
+                                            },
+                                            isFlexible:true,
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w400,
+                                            borderRadius: 5,
+                                            horizontalMargin: 0,
+                                            horizontalPadding: 8,
+                                            verticalPadding: 4,
+                                          ),
+                                    )
+                                  ],),
+                                ),
+                              ),
+
+                          ],
+                        ),
+                      )
+                    else
+                      CustomShadowContainer(
+                        horizontalPadding: 15,
+                        verticalPadding: 14,
+                        child: Row(
+                          children: [
+                            CustomText.smallText(
+                              "No video records available.",
+                              increamentFontSize: 1,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ],
+                        ),
+                      ),
+
+                    vSizedBox2,
+
+
+                    if(hobbies.isNotEmpty)
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        CustomText.bodyText2(
+                          'Hobbies and interests',
+                          increamentFontSize: 1,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ],
+                    ),
+                    if(hobbies.isNotEmpty)
+                      vSizedBox,
+                    if(hobbies.isNotEmpty)
+                      CustomShadowContainer(
+                      horizontalPadding: 15,
+                      verticalPadding: 14,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          for (int i = 0; i < hobbies.length; i++)
+                            Padding(
+                              padding: EdgeInsets.only(
+                                  bottom: i == hobbies.length - 1
+                                      ? 0
+                                      : 2),
+                              child: Row(
+                                children: [
+                                  const Icon(
+                                    Icons.circle_outlined,
+                                    size: 9,
+                                  ),
+                                  hSizedBox,
+                                  CustomText.smallText(
+                                    hobbies[i],
+                                  ),
+                                ],
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                    if(hobbies.isNotEmpty)
+                    vSizedBox2,
+                    CustomText.bodyText2('Reviews',
+                      fontWeight: FontWeight.w600,
+                      increamentFontSize: 1,
+                    ),
+                    vSizedBox,
+                    if(guideValue.guideReviews.isNotEmpty)
+                      CustomShadowContainer(
+                      horizontalPadding: 15,
+                      verticalPadding: 14,
+                      child:ListView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: guideValue.guideReviews.length,
+                        itemBuilder: (context, index) {
+                        return  Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                CustomImage(
+                                  imageUrl:  guideValue.guideReviews[index].profileImage,
+                                  height: 30,
+                                  width: 30,
+                                  showLoader: false,
+                                  isBackgroundImage: false,
+                                  isShowStackImage: false,
+                                  fileType: CustomFileType.network,
+                                ),
+                                hSizedBox,
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              CustomText.smallText(
+                                                '${guideValue.guideReviews[index].firstName} ${guideValue.guideReviews[index].lastName}',
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                              vSizedBox02,
+                                              CustomRating(
+                                                rating: guideValue.guideReviews[index].rating.toDouble(),
+                                                itemSize: 10,
+
+                                              )
+                                            ],
+                                          ),
+
+                                          CustomText.smallText(
+                                           CustomTimeFunctions.formatDateTime(guideValue.guideReviews[index].ratingDt),
+                                            color: MyColors.blackColor50,
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                            vSizedBox05,
+                            CustomText.smallText(
+                                guideValue.guideReviews[index].ratingComment, color: MyColors.blackColor50,
+                            ),
+                            if(index!=guideValue.guideReviews.length-1)
+                            Divider(
+                              height: 35,
+                              color: MyColors.blackColor05,
+                            ),
+                          ],
+                        );},)
+                    )
+                    else
+                      CustomShadowContainer(
+                        horizontalPadding: 15,
+                        verticalPadding: 15,
+                        child:   Row(
+                          children: [
+                            CustomText.smallText(
+                              "No Reviews yet.",
+                              increamentFontSize: 1,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ],
+                        ),
+                      ),
+                    vSizedBox2,
+                  ],
+                ),
+              );
+            }
+          );
+        }
+      ),
+    );
+  }
+
+
+}
+
+
+OLD APP BAR
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:provider/provider.dart';
+import 'package:quadsu_app/constants/types/user_type.dart';
+import 'package:quadsu_app/provider/my_auth_provider.dart';
+import 'package:quadsu_app/services/custom_navigation_services.dart';
+import 'package:quadsu_app/widget/custom_image.dart';
+import 'package:quadsu_app/widget/custom_text.dart';
+import 'package:flutter/material.dart';
+import '../constants/global_data.dart';
+import '../constants/my_colors.dart';
+import '../constants/my_image_url.dart';
+import '../constants/sized_box.dart';
+import '../pages/commons/notification_screen.dart';
+
+// ignore: must_be_immutable
+class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
+  Color? bgColor;
+  Color? titleColor;
+  String? titleText;
+  String? leadImageUrl;
+  Widget? title;
+  Widget? leading;
+  double? toolbarHeight;
+  Widget? subTitleWidget;
+  double? titleFontSize;
+  bool centerTitle;
+  bool isBackIcon;
+  bool isNotificationIcon;
+  bool bottomCurve;
+  bool showBottomBorder;
+  String? leadingIcon;
+  FontWeight? titleFontWeight;
+  double? leadingWidth;
+  PreferredSizeWidget? bottom;
+  Function()? onPressed;
+  List<Widget>? actions;
+
+  CustomAppBar({
+    super.key,
+    this.bgColor,
+    this.titleColor,
+    this.titleText,
+    this.actions,
+    this.bottom,
+    this.title,
+    this.titleFontWeight,
+    this.onPressed,
+    this.leadingWidth = globalHorizontalPadding,
+    this.leadImageUrl,
+    this.titleFontSize,
+    this.subTitleWidget,
+    this.showBottomBorder = true,
+    this.centerTitle = false,
+    this.bottomCurve = false,
+    this.isBackIcon = true,
+    this.isNotificationIcon = false,
+    this.toolbarHeight = 65.0,
+    this.leadingIcon,
+    this.leading,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return AppBar(
+      elevation: 0,
+      toolbarHeight: toolbarHeight,
+      title: title ??
+          Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: centerTitle
+                ? CrossAxisAlignment.center
+                : CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CustomText.appbarText(
+                titleText ?? '',
+                fontSize: titleFontSize,
+                color: titleColor,
+                fontWeight: titleFontWeight,
+              ),
+              subTitleWidget != null ? vSizedBox02 : Container(),
+              subTitleWidget ?? Container()
+            ],
+          ),
+      backgroundColor: bgColor ?? MyColors.transparent,
+      centerTitle: centerTitle,
+      automaticallyImplyLeading: isBackIcon,
+      titleSpacing: 0,
+      leadingWidth:
+          (isBackIcon && Navigator.canPop(context)) ? 50 : leadingWidth,
+      leading: (isBackIcon && Navigator.canPop(context))
+          ? IconButton(
+              onPressed: onPressed ??
+                  () {
+                    unFocusKeyBoard();
+                    Navigator.pop(context);
+                  },
+              icon: Icon(
+                Icons.arrow_back_ios_new,
+                size: 20,
+                color: titleColor ?? MyColors.appBarTextColor,
+              ))
+          : leadImageUrl != null
+              ? GestureDetector(
+                  onTap: () {
+                    Scaffold.of(context).openDrawer();
+                  },
+                  child: Consumer<MyAuthProvider>(
+                      builder: (context, value, child) {
+                    return ValueListenableBuilder(
+                        valueListenable: userDataNotifier,
+                        builder: (context, userData, child) {
+                          return Padding(
+                            padding: const EdgeInsets.only(left: 10),
+                            child: CustomImage(
+                              imageUrl: usertype == UserType.guide
+                                  ? userData?.guidePrefrence?.profileImage ?? ""
+                                  : userData?.studentPrefrence?.profileImage ??
+                                      "",
+                              fileType: CustomFileType.network,
+                              height: 45,
+                              staticBlurImage: MyImagesUrl.defaultProfileImage,
+                              width: 45,
+                            ),
+                          );
+                        });
+                  }),
+                )
+              : Container(),
+      actions: actions ??
+          [
+            if (isNotificationIcon)
+              Consumer<MyAuthProvider>(
+                  builder: (context, myAuthProvider, child) {
+                return GestureDetector(
+                  onTap: () async {
+                    CustomNavigation.push(
+                        context: context, screen: const NotificationScreen());
+                  },
+                  child: Stack(
+                    children: [
+                      const Padding(
+                        padding: EdgeInsets.only(right: 6, left: 6),
+                        child: ImageIcon(
+                          AssetImage(MyImagesUrl.notification),
+                          size: 27,
+                        ),
+                      ),
+                      if (myAuthProvider.unreadNotificationsCount.value != 0)
+                        Positioned(
+                          top: myAuthProvider.unreadNotificationsCount.value <=
+                              9?-3:0,
+                          right: 5,
+                          child: Container(
+                            padding:  EdgeInsets.all( myAuthProvider.unreadNotificationsCount.value <=
+                                9?5:3),
+                            decoration: const BoxDecoration(
+                                shape: BoxShape.circle, color: Colors.red),
+                            child: Center(
+                              child: CustomText.bodyText2(
+                                myAuthProvider.unreadNotificationsCount.value <=
+                                        9
+                                    ? '${myAuthProvider.unreadNotificationsCount.value}'
+                                    : '9+',
+                                textAlign: TextAlign.center,
+                                color: Colors.white,
+                                fontSize: 7,
+                              ),
+                            ),
+                          ),
+                        )
+                    ],
+                  ),
+                );
+              }),
+            // GestureDetector(
+            //   onTap: () async {
+            //     push(context: context, screen: const NotificationScreen());
+            //   },
+            //   child: Image.asset(
+            //     MyImagesUrl.notification,
+            //     width: 25,
+            //     color: Colors.black,
+            //   ),
+            // ),
+            // if (isEdit)
+            //   GestureDetector(
+            //     onTap: () async {
+            //       push(context: context, screen: const NotificationScreen());
+            //     },
+            //     child: Image.asset(
+            //       MyImagesUrl.edit,
+            //       width: 20,
+            //     ),
+            //   ),
+            hSizedBox,
+          ],
+      bottom: bottom,
+      shape: bottomCurve
+          ? const RoundedRectangleBorder(
+              borderRadius: BorderRadius.vertical(
+                bottom: Radius.circular(30),
+              ),
+            )
+          : null,
+      // systemOverlayStyle: ,
+    );
+  }
+
+  @override
+  Size get preferredSize => Size.fromHeight(toolbarHeight!);
+}
+
+
+
+
+OLD MY_GUIDE SECREEN
+
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:quadsu_app/constants/types/user_type.dart';
+import 'package:quadsu_app/widget/app_specific/custom_drawer.dart';
+import 'package:quadsu_app/widget/custom_paginated_grid_view.dart';
+import 'package:quadsu_app/widget/custom_scaffold.dart';
+
+import '../../constants/global_data.dart';
+import '../../constants/my_colors.dart';
+import '../../constants/my_image_url.dart';
+import '../../constants/sized_box.dart';
+import '../../provider/student_guide_provider.dart';
+import '../../services/custom_navigation_services.dart';
+import '../../widget/app_specific/custom_shadow_container.dart';
+import '../../widget/custom_appbar.dart';
+import '../../widget/custom_image.dart';
+import '../../widget/custom_text.dart';
+import '../../widget/custom_text_field.dart';
+import '../guide_module/student_profile.dart';
+import 'guide_profile_screen.dart';
+
+class MyStudentGuidesScreen extends StatefulWidget {
+  const MyStudentGuidesScreen({super.key});
+
+  @override
+  State<MyStudentGuidesScreen> createState() => _MyStudentGuidesScreenState();
+}
+
+class _MyStudentGuidesScreenState extends State<MyStudentGuidesScreen> {
+  TextEditingController searchController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback(
+          (timeStamp) {
+        StudentGuideProvider instantBookingProvider =
+        Provider.of<StudentGuideProvider>(context, listen: false);
+        instantBookingProvider.studentGuideSessionsOffset = 1;
+        instantBookingProvider.getStudentGuide();
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomScaffold(
+        appBar: CustomAppBar(
+          isBackIcon: false,
+          leadingWidth: 55,
+          leadImageUrl: MyImagesUrl.image04,
+          titleText: usertype ==UserType.guide?"My Students":"My Guides",
+          centerTitle: true,
+          isNotificationIcon: true,
+        ),
+        drawer: const CustomDrawer(),
+        body: Consumer<StudentGuideProvider>(
+            builder: (context, studentGuideProvider, child) {
+              if (studentGuideProvider.studentGuideModel != null) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    vSizedBox05,
+                    // Padding(
+                    //   padding: const EdgeInsets.symmetric(
+                    //       horizontal: globalHorizontalPadding, vertical: 10),
+                    //   child: CustomTextField(
+                    //     controller: searchController,
+                    //     contentPaddingVertical: 0,
+                    //     contentPaddingHorizonatly: 10,
+                    //     borderRadius: 10,
+                    //     hintColor: MyColors.blackColor.withOpacity(0.4),
+                    //     hintTextFontSize: 14,
+                    //     fontSize: 14,
+                    //     height: 46,
+                    //     borderColor: MyColors.transparent,
+                    //     showShadow: true,
+                    //     hintText: 'Search Guide',
+                    //     fillColor: MyColors.whiteColor,
+                    //     prefix: Padding(
+                    //       padding: const EdgeInsets.all(14),
+                    //       child: Image.asset(
+                    //         MyImagesUrl.search_outline,
+                    //         color: const Color(0xFF979797),
+                    //         width: 18,
+                    //         height: 18,
+                    //       ),
+                    //     ),
+                    //   ),
+                    // ),
+                    if (studentGuideProvider.studentGuides.isNotEmpty)
+                      Expanded(
+                        child: CustomPaginatedGridView(
+                          onRefresh: () async {
+                            studentGuideProvider.studentGuideSessionsOffset = 1;
+                            studentGuideProvider.isLastData = false;
+                            studentGuideProvider.studentGuideSessionsRefresh =
+                            true;
+                            await studentGuideProvider.getStudentGuide();
+                            studentGuideProvider.studentGuideSessionsRefresh =
+                            false;
+                          },
+                          onLoadMore: () async {
+                            studentGuideProvider.studentGuideSessionsOffset =
+                                studentGuideProvider
+                                    .studentGuideSessionsOffset + 1;
+                            await studentGuideProvider.getStudentGuide();
+                          },
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: globalHorizontalPadding,
+                              vertical: 20),
+                          gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 3,
+                            childAspectRatio: 1.1 / 1.1,
+                            crossAxisSpacing: 10,
+                            mainAxisSpacing: 10,
+                          ),
+                          itemCount: studentGuideProvider.studentGuides.length,
+                          itemBuilder: (BuildContext context, int index) {
+                            final studentGuide=studentGuideProvider.studentGuides[index];
+                            return GestureDetector(
+                              onTap: () {
+                                if(usertype ==UserType.student)
+                                  {
+                                    CustomNavigation.push(
+                                        context: context,
+                                        screen:  GuideProfileScreen(guideId: studentGuide.userId!,));
+                                  }
+                                else
+                                  {
+                                    CustomNavigation.push(context: context, screen:  StudentProfileScreen(studentId: studentGuide.userId??0,));
+
+                                  }
+                              },
+                              child: CustomShadowContainer(
+                                verticalPadding: 1,
+                                horizontalPadding: 4,
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    CustomImage(
+                                      imageUrl: usertype == UserType.student
+                                          ? studentGuide.guidePrefrence?.profileImage??""
+                                          :studentGuide.studentPrefrence?.profileImage?? '',
+                                      staticBlurImage:
+                                      MyImagesUrl.profileImage,
+                                      height: 50,
+                                      width: 50,
+                                      isShowStackImage: true,
+                                      fileType: CustomFileType.network,
+                                    ),
+                                    vSizedBox02,
+                                    CustomText.smallText(
+                                      "${studentGuide?.firstName??""} ${studentGuide?.lastName.toString()[0].toUpperCase()??""}",
+                                      textAlign: TextAlign.center,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                    if(usertype == UserType.student &&studentGuide.guidePrefrence?.speciality.isNotEmpty==true )
+                                    CustomText.smallText(
+                                          studentGuide.guidePrefrence?.speciality.split(',').firstOrNull??""
+                                          ,
+                                      fontSize: 11,
+                                      color: MyColors.blackColor40,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      )
+                    else
+                      Expanded(
+                        child: Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Center(
+                                child: CustomText.bodyText1(
+                                  'No ${usertype == UserType.guide
+                                      ? "Students"
+                                      : "Guides"} Found',
+                                  fontWeight: FontWeight.w500,
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      )
+                  ],
+                );
+              } else {
+                return const SizedBox();
+              }
+            }));
+  }
+}
+
+
+
+
+
+
+
+----------------------------------------------------------------------------------------------
+ALL NEW DESIGN VERSION
+
+
+NEW HOME,  WITH APP BAR, REPLACE OLD APP BAR DESIGN WITH NEW ONE HOWEVER THE NAVIGATION WILL BE AS OF OLD, ALSO ITS SEPARATE FILE I PROVIDED ABOVE, SIMILARLY DO FOR HOMEPAGE
+import 'dart:ui'; // <--- Add this import to fix the PathMetric error
+import 'package:flutter/material.dart';
+
+class HomeScreen extends StatelessWidget {
+  const HomeScreen({super.key});
+
+  // Color Palette extracted from the design
+  final Color kBackgroundColor = const Color(0xFFF5F6FA);
+  final Color kPrimaryBlue = const Color(0xFF2D3388); // Deep Indigo/Blue
+  final Color kAccentOrange = const Color(0xFFF79E1B); // Orange
+  final Color kWhite = Colors.white;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: kBackgroundColor,
+      // Custom Bottom Navigation Bar
+      bottomNavigationBar: Container(
+        height: 80,
+        decoration: BoxDecoration(
+          color: kBackgroundColor,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 20,
+              offset: const Offset(0, -5),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            Icon(Icons.home_outlined, size: 30, color: kPrimaryBlue),
+            Icon(
+              Icons.chat_bubble_outline_rounded,
+              size: 28,
+              color: kPrimaryBlue.withOpacity(0.5),
+            ),
+            Icon(
+              Icons.favorite_border_rounded,
+              size: 28,
+              color: kPrimaryBlue.withOpacity(0.5),
+            ),
+            Icon(
+              Icons.calendar_today_rounded,
+              size: 26,
+              color: kPrimaryBlue.withOpacity(0.5),
+            ),
+            Icon(
+              Icons.person_outline_rounded,
+              size: 30,
+              color: kPrimaryBlue.withOpacity(0.5),
+            ),
+          ],
+        ),
+      ),
+      body: SafeArea(
+        bottom: false,
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 24.0,
+              vertical: 16.0,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // --- Header Section ---
+                Row(
+                  children: [
+                    Image.asset(
+                      'assets/images/logo.png',
+                      height: 20,
+                      errorBuilder: (ctx, _, __) =>
+                          Icon(Icons.shield, color: kAccentOrange, size: 40),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'Find your perfect college guide',
+                  style: TextStyle(
+                    color: kPrimaryBlue,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w400,
+                  ),
+                ),
+
+                // --- Search Bar ---
+                const SizedBox(height: 20),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: kWhite,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: TextField(
+                    decoration: InputDecoration(
+                      border: InputBorder.none,
+                      icon: Icon(Icons.search, color: Colors.grey[400]),
+                      hintText: 'Search by school or major...',
+                      hintStyle: TextStyle(color: Colors.grey[400]),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 30),
+
+                // --- Featured Guides Section ---
+                _buildSectionHeader(
+                  title: 'Featured Guides',
+                  icon: Icons.star_outline_rounded,
+                  iconColor: kAccentOrange,
+                ),
+                const SizedBox(height: 16),
+
+                // Horizontal Scroll List
+                SizedBox(
+                  height: 240,
+                  child: ListView(
+                    scrollDirection: Axis.horizontal,
+                    clipBehavior: Clip.none,
+                    children: [
+                      _buildGuideCard(
+                        imagePath: 'assets/images/sarah.png',
+                        name: 'Sarah\nChen',
+                        uni: 'Stanford University',
+                        major: 'Computer science',
+                        majorColor: kAccentOrange,
+                      ),
+                      const SizedBox(width: 16),
+                      _buildGuideCard(
+                        imagePath: 'assets/images/emily.png',
+                        name: 'Emily\nRodrigues',
+                        uni: 'MIT',
+                        major: 'Engineering',
+                        majorColor: kAccentOrange,
+                      ),
+                      const SizedBox(width: 16),
+                      _buildGuideCard(
+                        imagePath: 'assets/images/marcus.png',
+                        name: 'Marcus\nJohnson',
+                        uni: 'Harvard University',
+                        major: 'Economics',
+                        majorColor: kAccentOrange,
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 30),
+
+                // --- Trending Majors Section ---
+                _buildSectionHeader(
+                  title: 'Trending Majors',
+                  icon: Icons.trending_up_rounded,
+                  iconColor: kAccentOrange,
+                ),
+                const SizedBox(height: 16),
+
+                // Chips Layout
+                Wrap(
+                  spacing: 12,
+                  runSpacing: 12,
+                  children: [
+                    _buildMajorChip('Computer Science', width: 180),
+                    _buildMajorChip('Business', width: 110),
+                    _buildMajorChip('Engineering', width: 130),
+                    _buildMajorChip('Pre-Med', width: 110),
+                  ],
+                ),
+
+                const SizedBox(height: 40),
+
+                // --- Request Guide (Dashed Border) Section ---
+                CustomPaint(
+                  painter: DashedBorderPainter(
+                    color: kAccentOrange,
+                    strokeWidth: 2,
+                    gap: 5,
+                  ),
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(20),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 50,
+                          height: 50,
+                          decoration: BoxDecoration(
+                            color: kAccentOrange,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.add,
+                            color: Colors.white,
+                            size: 30,
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "Can't find your guide?",
+                                style: TextStyle(
+                                  color: kPrimaryBlue,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                "Send us your request — we'll take care of the rest!",
+                                style: TextStyle(
+                                  color: Colors.black87,
+                                  fontSize: 13,
+                                  height: 1.3,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // --- Helper Widgets ---
+
+  Widget _buildSectionHeader({
+    required String title,
+    required IconData icon,
+    required Color iconColor,
+  }) {
+    return Row(
+      children: [
+        Icon(icon, color: iconColor, size: 26),
+        const SizedBox(width: 8),
+        Text(
+          title,
+          style: TextStyle(
+            color: kPrimaryBlue,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildGuideCard({
+    required String imagePath,
+    required String name,
+    required String uni,
+    required String major,
+    required Color majorColor,
+  }) {
+    return Container(
+      width: 160,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        color: Colors.grey[300],
+        image: DecorationImage(
+          image: AssetImage(imagePath),
+          fit: BoxFit.cover,
+          onError: (e, s) {},
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: kPrimaryBlue.withOpacity(0.15),
+            blurRadius: 10,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Stack(
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Colors.transparent,
+                  kPrimaryBlue.withOpacity(0.2),
+                  kPrimaryBlue.withOpacity(0.9),
+                ],
+                stops: const [0.4, 0.6, 1.0],
+              ),
+            ),
+          ),
+          Positioned(
+            top: 12,
+            right: 12,
+            child: const Icon(
+              Icons.favorite_border,
+              color: Colors.white,
+              size: 24,
+            ),
+          ),
+          Positioned(
+            bottom: 16,
+            left: 12,
+            right: 12,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  name,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                    height: 1.1,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  uni,
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.8),
+                    fontSize: 10,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  major,
+                  style: TextStyle(
+                    color: majorColor,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMajorChip(String label, {double? width}) {
+    return Container(
+      width: width,
+      padding: const EdgeInsets.symmetric(vertical: 14),
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: const Color(0xFFEEEFF3),
+        borderRadius: BorderRadius.circular(30),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: kPrimaryBlue,
+          fontWeight: FontWeight.w600,
+          fontSize: 14,
+        ),
+      ),
+    );
+  }
+}
+
+// --- Custom Painter for Dashed Border ---
+class DashedBorderPainter extends CustomPainter {
+  final Color color;
+  final double strokeWidth;
+  final double gap;
+
+  DashedBorderPainter({
+    required this.color,
+    this.strokeWidth = 1.0,
+    this.gap = 5.0,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    Paint paint = Paint()
+      ..color = color
+      ..strokeWidth = strokeWidth
+      ..style = PaintingStyle.stroke;
+
+    Path path = Path();
+    path.addRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(0, 0, size.width, size.height),
+        const Radius.circular(16),
+      ),
+    );
+
+    Path dashPath = Path();
+    double dashWidth = 8.0;
+    double distance = 0.0;
+
+    // This loop relies on 'dart:ui' being imported
+    for (PathMetric pathMetric in path.computeMetrics()) {
+      while (distance < pathMetric.length) {
+        dashPath.addPath(
+          pathMetric.extractPath(distance, distance + dashWidth),
+          Offset.zero,
+        );
+        distance += dashWidth;
+        distance += gap;
+      }
+    }
+    canvas.drawPath(dashPath, paint);
+  }
+
+  @override
+  bool shouldRepaint(CustomPainter oldDelegate) => false;
+}
+
+NEW DESIGN
+IN OLD HOMEPAGE WHEN WE CLICK ANY TOPIC OR MYGUIDE IT OPEN THIS, SO REPLACE THE DESING ONLY, ITS MY GUIDE SECREEN
+SO ITS MY GUIDE NEW DESIGN BELOW
+import 'package:flutter/material.dart';
+
+class HomeContinueScreen extends StatelessWidget {
+  const HomeContinueScreen({super.key});
+
+  // --- Constants & Colors ---
+  static const Color kPrimaryBlue = Color(0xFF2D3388);
+  static const Color kAccentOrange = Color(0xFFF79E1B);
+  static const Color kTextBlack = Color(0xFF1C1C1E);
+  static const Color kTextGrey = Color(0xFF8A8A8F);
+  static const Color kBackgroundLight = Color(0xFFF2F2F7);
+  static const Color kHeaderBg = Color(
+    0xFFF0F1F9,
+  ); // Light purple-ish bg for header
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: Stack(
+        children: [
+          Column(
+            children: [
+              // 1. Custom Header Section
+              Container(
+                color: kHeaderBg,
+                padding: const EdgeInsets.fromLTRB(24, 60, 24, 24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Logo Row
+                    Row(
+                      children: [
+                        SizedBox(
+                          width: 55, // only slightly bigger
+                          height: 60, // only slightly bigger
+                          child: Image.asset(
+                            'assets/images/logo.png',
+                            fit: BoxFit.contain,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+
+                    // Subtitle
+                    const Text(
+                      'Find your perfect college guide',
+                      style: TextStyle(
+                        color: kPrimaryBlue,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Search Bar
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      height: 50,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: kPrimaryBlue.withOpacity(0.05),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(Icons.search, color: Colors.grey[400]),
+                          const SizedBox(width: 10),
+                          Text(
+                            'Search by school or major...',
+                            style: TextStyle(
+                              color: Colors.grey[400],
+                              fontSize: 15,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // 2. Scrollable List Body
+              Expanded(
+                child: ListView(
+                  padding: const EdgeInsets.fromLTRB(
+                    24,
+                    24,
+                    24,
+                    100,
+                  ), // Bottom padding for nav bar
+                  physics: const BouncingScrollPhysics(),
+                  children: [
+                    // "Can't find your guide?" Dotted Card
+                    CustomPaint(
+                      painter: DashedBorderPainter(
+                        color: kAccentOrange,
+                        strokeWidth: 1.5,
+                        gap: 5.0,
+                        radius: 16.0,
+                      ),
+                      child: Container(
+                        padding: const EdgeInsets.all(20),
+                        child: Row(
+                          children: [
+                            // Orange Plus Button
+                            Container(
+                              width: 48,
+                              height: 48,
+                              decoration: const BoxDecoration(
+                                color: kAccentOrange,
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                Icons.add,
+                                color: Colors.white,
+                                size: 28,
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            // Text Column
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    "Can't find your guide?",
+                                    style: TextStyle(
+                                      color: kPrimaryBlue,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    "Send us your request — we'll take care of the rest!",
+                                    style: TextStyle(
+                                      color: kTextBlack.withOpacity(0.8),
+                                      fontSize: 13,
+                                      height: 1.3,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    // Guide Card 1 - Sarah
+                    const GuideCard(
+                      imagePath: 'assets/images/sarah.png',
+                      name: 'Sarah Chen',
+                      uni: 'Stanford University',
+                      majorYear: 'Computer Science • Junior',
+                      tags: ['Research', 'Startups'],
+                    ),
+
+                    // Guide Card 2 - Marcus
+                    const GuideCard(
+                      imagePath:
+                          'assets/images/marcus.png', // Ensure asset exists
+                      name: 'Marcus Johnson',
+                      uni: 'Harvard University',
+                      majorYear: 'Economics • Senior',
+                      tags: ['Internships', 'Sports'],
+                    ),
+
+                    // Guide Card 3 - Emily
+                    const GuideCard(
+                      imagePath:
+                          'assets/images/emily.png', // Ensure asset exists
+                      name: 'Emily Rodriguez',
+                      uni: 'MIT',
+                      majorYear: 'Engineering • Sophomore',
+                      tags: ['Research', 'Clubs'],
+                    ),
+
+                    // Guide Card 4 - David
+                    const GuideCard(
+                      imagePath:
+                          'assets/images/marcus.png', // Ensure asset exists
+                      name: 'David Kim',
+                      uni: 'Yale University',
+                      majorYear: 'Political Science • Junior',
+                      tags: ['Debate', 'Policy'],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+
+          // 3. Custom Bottom Navigation Bar
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: Container(
+              height: 80,
+              decoration: BoxDecoration(
+                color: const Color(0xFFF2F2F7),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, -5),
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  // Home is ACTIVE
+                  _buildActiveNavIcon(Icons.home_outlined),
+
+                  _buildNavIcon(Icons.chat_bubble_outline),
+                  _buildNavIcon(Icons.favorite_border),
+                  _buildNavIcon(Icons.calendar_today_outlined),
+                  _buildNavIcon(Icons.person_outline),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // --- Nav Helpers ---
+  Widget _buildNavIcon(IconData icon) {
+    return Icon(icon, color: kPrimaryBlue, size: 28);
+  }
+
+  Widget _buildActiveNavIcon(IconData icon) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        shape: BoxShape.circle,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.15),
+            blurRadius: 8,
+            spreadRadius: 1,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Icon(icon, color: kPrimaryBlue, size: 30, weight: 20.0),
+    );
+  }
+}
+
+// --- Component: Guide Card ---
+class GuideCard extends StatelessWidget {
+  final String imagePath;
+  final String name;
+  final String uni;
+  final String majorYear;
+  final List<String> tags;
+
+  const GuideCard({
+    super.key,
+    required this.imagePath,
+    required this.name,
+    required this.uni,
+    required this.majorYear,
+    required this.tags,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    // Navigate to Guide Page on tap
+    return GestureDetector(
+      onTap: () {
+        // Assuming you have the named route set up
+        Navigator.pushNamed(context, '/guide_page');
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 16),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Profile Image
+            ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: Image.asset(
+                imagePath,
+                width: 80,
+                height: 80,
+                fit: BoxFit.cover,
+                // Fallback icon if image fails
+                errorBuilder: (context, error, stackTrace) => Container(
+                  width: 80,
+                  height: 80,
+                  color: Colors.grey[300],
+                  child: const Icon(Icons.person),
+                ),
+              ),
+            ),
+            const SizedBox(width: 16),
+
+            // Info Column
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    name,
+                    style: const TextStyle(
+                      color: Color(0xFF2D3388), // Primary Blue
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    uni,
+                    style: TextStyle(color: Colors.grey[700], fontSize: 13),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    majorYear,
+                    style: const TextStyle(
+                      color: Color(0xFFF79E1B), // Orange
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+
+                  // Tags Row
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 4,
+                    children: tags
+                        .map(
+                          (tag) => Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.grey[100],
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              tag,
+                              style: TextStyle(
+                                color: Colors.grey[800],
+                                fontSize: 11,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        )
+                        .toList(),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// --- Custom Painter for Dotted Border ---
+class DashedBorderPainter extends CustomPainter {
+  final Color color;
+  final double strokeWidth;
+  final double gap;
+  final double radius;
+
+  DashedBorderPainter({
+    this.color = Colors.black,
+    this.strokeWidth = 1.0,
+    this.gap = 5.0,
+    this.radius = 0.0,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final Paint paint = Paint()
+      ..color = color
+      ..strokeWidth = strokeWidth
+      ..style = PaintingStyle.stroke;
+
+    final Path path = Path()
+      ..addRRect(
+        RRect.fromRectAndRadius(
+          Rect.fromLTWH(0, 0, size.width, size.height),
+          Radius.circular(radius),
+        ),
+      );
+
+    final Path dashedPath = Path();
+    double distance = 0.0;
+
+    for (final metric in path.computeMetrics()) {
+      while (distance < metric.length) {
+        dashedPath.addPath(
+          metric.extractPath(distance, distance + gap),
+          Offset.zero,
+        );
+        distance += gap * 2; // Gap + Dash length (equal size here)
+      }
+    }
+
+    canvas.drawPath(dashedPath, paint);
+  }
+
+  @override
+  bool shouldRepaint(CustomPainter oldDelegate) => false;
+}
+
+
+
+
+
+NEW DESIGN GUIDE PROFILE PAGE, WE NAVIGATE TO THIS IN HOME PAGE WHEN WE CLICK ON TOP CATAGORY OR MY GUIDE U CAN SEE IN OLD HOME PAGE WITH WHICH IT IS LINK AS WE WILL USE SAME OLD LINK HOWEVER UI WILLL BE UPDATED
+import 'package:flutter/material.dart';
+
+class GuidepageScreen extends StatelessWidget {
+  const GuidepageScreen({super.key});
+
+  // Color Palette
+  static const Color kPrimaryBlue = Color(0xFF2D3388);
+  static const Color kAccentOrange = Color(0xFFF79E1B);
+  static const Color kTextGrey = Color(0xFF8A8A8F);
+  static const Color kTextBlack = Color(0xFF1C1C1E);
+  static const Color kChipBlue = Color(0xFF6B71B9);
+
+  @override
+  Widget build(BuildContext context) {
+    final double screenHeight = MediaQuery.of(context).size.height;
+
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: Stack(
+        children: [
+          CustomScrollView(
+            physics: const BouncingScrollPhysics(),
+            slivers: [
+              // 1. The Expandable Header
+              SliverAppBar(
+                expandedHeight: 400.0,
+                pinned: true,
+                stretch: true,
+                backgroundColor: kPrimaryBlue,
+                elevation: 0,
+                centerTitle: true,
+                leading: IconButton(
+                  icon: const Icon(
+                    Icons.arrow_back,
+                    color: Color.fromARGB(255, 0, 0, 0),
+                  ),
+                  onPressed: () => Navigator.pop(context),
+                ),
+                actions: [
+                  IconButton(
+                    icon: const Icon(
+                      Icons.favorite_border,
+                      color: Color(0xFF2D3388),
+                    ),
+                    onPressed: () {},
+                  ),
+                ],
+                flexibleSpace: FlexibleSpaceBar(
+                  stretchModes: const [
+                    StretchMode.zoomBackground,
+                    StretchMode.blurBackground,
+                  ],
+                  titlePadding: const EdgeInsets.only(bottom: 16),
+                  centerTitle: true,
+                  title: Column(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: const [
+                      Text(
+                        'Sarah Chen',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      SizedBox(height: 4),
+                      Text(
+                        'Stanford University',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w400,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                  background: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      Image.asset(
+                        'assets/images/sarah_chen.png',
+                        fit: BoxFit.cover,
+                        alignment: const Alignment(
+                          0.1,
+                          -0.3,
+                        ), // adjust face position
+                      ),
+                      const DecoratedBox(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [Colors.transparent, Colors.black54],
+                            stops: [0.6, 1.0],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              // 2. The White Content Sheet
+              SliverToBoxAdapter(
+                child: ClipRRect(
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(30),
+                    topRight: Radius.circular(30),
+                  ),
+                  child: Container(
+                    color: Colors.white,
+                    transform: Matrix4.translationValues(0, -20, 0),
+                    padding: const EdgeInsets.fromLTRB(24, 30, 24, 120),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // --- Stats Row ---
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildStatItem(
+                              Icons.school_outlined,
+                              'Year',
+                              'Junior',
+                            ),
+                            _buildStatItem(
+                              Icons.article_outlined,
+                              'Major',
+                              'Mechanical\nEngineering',
+                            ),
+                            _buildStatItem(
+                              Icons.schedule,
+                              'Response',
+                              '< 4 hours',
+                            ),
+                          ],
+                        ),
+
+                        const SizedBox(height: 24),
+                        Divider(color: Colors.grey[200], thickness: 1.5),
+                        const SizedBox(height: 24),
+
+                        // --- About Section ---
+                        Text(
+                          'About',
+                          style: TextStyle(
+                            color: const Color.fromARGB(255, 0, 0, 0),
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        const Text(
+                          'Engineering student with a passion for robotics and design. Love helping high schoolers understand what engineering is really like beyond the textbooks.',
+                          style: TextStyle(
+                            color: Colors.black87,
+                            fontSize: 15,
+                            height: 1.5,
+                          ),
+                        ),
+
+                        const SizedBox(height: 24),
+                        Divider(color: Colors.grey[200], thickness: 1.5),
+                        const SizedBox(height: 24),
+
+                        // --- Areas of Expertise ---
+                        Text(
+                          'Areas of Expertise',
+                          style: TextStyle(
+                            color: const Color.fromARGB(255, 0, 0, 0),
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        Wrap(
+                          spacing: 10,
+                          runSpacing: 10,
+                          children: [
+                            _buildChip('Course Selection', isBlue: true),
+                            _buildChip('Internship Prep', isBlue: true),
+                            _buildChip('Research Opportunities', isBlue: true),
+                          ],
+                        ),
+
+                        const SizedBox(height: 24),
+                        Divider(color: Colors.grey[200], thickness: 1.5),
+                        const SizedBox(height: 24),
+
+                        // --- Interests ---
+                        Text(
+                          'Interests',
+                          style: TextStyle(
+                            color: kTextBlack,
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        Wrap(
+                          spacing: 10,
+                          runSpacing: 10,
+                          children: [
+                            _buildChip('Web Development', isBlue: false),
+                            _buildChip('Start up', isBlue: false),
+                            _buildChip(
+                              'Artificial Intelligence',
+                              isBlue: false,
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+
+          // 3. Fixed Bottom Button
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, -5),
+                  ),
+                ],
+              ),
+              child: ElevatedButton(
+                onPressed: () {},
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: kPrimaryBlue,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  elevation: 0,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: const [
+                    Icon(
+                      Icons.calendar_today_outlined,
+                      color: Colors.white,
+                      size: 22,
+                    ),
+                    SizedBox(width: 10),
+                    Text(
+                      'Book Your Session',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // --- Helper Widgets ---
+
+  Widget _buildStatItem(IconData icon, String label, String value) {
+    return Column(
+      children: [
+        Icon(icon, color: kAccentOrange, size: 28),
+        const SizedBox(height: 8),
+        Text(
+          label,
+          style: TextStyle(
+            color: kTextGrey,
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: kTextBlack,
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildChip(String label, {required bool isBlue}) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      decoration: BoxDecoration(
+        color: isBlue ? kChipBlue : const Color(0xFFF0F0F2),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: isBlue ? Colors.white : kPrimaryBlue,
+          fontWeight: FontWeight.w500,
+          fontSize: 14,
+        ),
+      ),
+    );
+  }
+}
+
