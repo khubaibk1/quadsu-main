@@ -1,0 +1,60 @@
+# Codemagic build configuration for Quadsu (iOS).
+#
+# Prerequisites, all done once in the Codemagic UI / Apple portals:
+#   1. App Store Connect API key added to Codemagic under
+#      Teams > Integrations > App Store Connect, named exactly
+#      `codemagic_app_store_key` (see `integrations` below).
+#   2. Bundle ID `com.quadsu.app` registered at developer.apple.com.
+#   3. App record created in App Store Connect for that bundle ID.
+#
+# `flutter analyze` is deliberately not run here: the project reports ~700
+# style lints, and `flutter analyze` exits non-zero on any issue, which would
+# fail every build. There are zero actual errors.
+
+workflows:
+  ios-release:
+    name: iOS Release (App Store)
+    instance_type: mac_mini_m2
+    max_build_duration: 60
+
+    environment:
+      flutter: stable
+      xcode: latest
+      cocoapods: default
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.quadsu.app
+
+    integrations:
+      # Must match the name given to the API key in the Codemagic UI.
+      app_store_connect: codemagic_app_store_key
+
+    scripts:
+      - name: Get Flutter packages
+        script: flutter pub get
+
+      - name: Install CocoaPods dependencies
+        script: find . -name "Podfile" -execdir pod install \;
+
+      - name: Set up code signing on the Xcode project
+        # Applies the provisioning profiles Codemagic fetched, and writes
+        # /Users/builder/export_options.plist used by the build step below.
+        script: xcode-project use-profiles
+
+      - name: Build IPA
+        script: |
+          flutter build ipa --release \
+            --export-options-plist=/Users/builder/export_options.plist
+
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+
+    # Uploading to App Store Connect is left off for the first run so you get
+    # an IPA to inspect first. To enable, uncomment this block. Set
+    # submit_to_testflight to true once you are ready to distribute.
+    #
+    # publishing:
+    #   app_store_connect:
+    #     auth: integration
+    #     submit_to_testflight: false
