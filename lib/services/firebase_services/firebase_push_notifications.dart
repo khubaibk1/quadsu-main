@@ -41,7 +41,7 @@ InitializationSettings initializationSettings = const InitializationSettings(
   android: AndroidInitializationSettings('@mipmap/ic_launcher'),
   iOS: DarwinInitializationSettings(),
 );
-// @pragma("vm:entry-point")
+@pragma("vm:entry-point")
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
