@@ -1,30 +1,18 @@
-// This is a basic Flutter widget test.
+// Smoke test for the Quadsu app.
 //
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
+// This previously held the untouched `flutter create` counter test, which
+// asserted on a counter UI this app never had and failed on every run.
+// Booting MyApp directly needs the full MultiProvider tree from main(), so
+// this checks the theme resolves instead — enough to keep `flutter test`
+// meaningful in CI without standing up the whole app.
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:quadsu_app/main.dart';
+import 'package:quadsu_app/themes/app_themes.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
-
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
-
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
-
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+  test('light theme resolves', () {
+    expect(CustomAppThemes.lightTheme, isA<ThemeData>());
   });
 }
