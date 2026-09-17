@@ -70,7 +70,7 @@ android {
     defaultConfig {
         applicationId = "com.quadsu.app"
         minSdkVersion = flutter.minSdkVersion
-        targetSdk = 35 // Keep this 35
+        targetSdk = 36 // Google Play requires API 36 for new apps and updates
         versionCode = flutterVersionCode.toInteger()
         versionName = flutterVersionName
         multiDexEnabled true
