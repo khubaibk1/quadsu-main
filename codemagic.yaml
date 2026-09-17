@@ -26,7 +26,6 @@ workflows:
         bundle_identifier: com.quadsu.app
 
     integrations:
-      # Must match the name given to the API key in the Codemagic UI.
       app_store_connect: codemagic_app_store_key
 
     scripts:
