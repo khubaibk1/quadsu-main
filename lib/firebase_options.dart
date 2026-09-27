@@ -51,7 +51,7 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyAl4xKz3PV_J_3Mzo1osH1SZjq5z76G3N0',
-    appId: '1:688266075693:android:8ccbb2eb2eea0a965422a4',
+    appId: '1:688266075693:android:fea8f04363341f8c5422a4',
     messagingSenderId: '688266075693',
     projectId: 'xenon-depth-470703-d5',
     storageBucket: 'xenon-depth-470703-d5.firebasestorage.app',
@@ -59,11 +59,11 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyB9CFuDe3UBeOxTqq5_nATPz3131vvHVMc',
-    appId: '1:688266075693:ios:eb2f9d2bb3c4adfc5422a4',
+    appId: '1:688266075693:ios:d8ecb68a18d637c25422a4',
     messagingSenderId: '688266075693',
     projectId: 'xenon-depth-470703-d5',
     storageBucket: 'xenon-depth-470703-d5.firebasestorage.app',
-    iosBundleId: 'com.quadsu.app',
+    iosBundleId: 'com.quadsuapp.ios',
   );
 
 

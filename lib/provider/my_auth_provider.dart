@@ -1071,12 +1071,12 @@ class MyAuthProvider extends ChangeNotifier {
   Future<void> shareApp(BuildContext context) async {
     // String link = Platform.isIOS
     //     ? "https://apps.apple.com/us/app/quadsu/id6737334148"
-    //     : "https://play.google.com/store/apps/details?id=com.quadsu.app";
+    //     : "https://play.google.com/store/apps/details?id=com.quadsuapp.app";
 
     const String appStoreLink =
         "https://apps.apple.com/us/app/quadsu/id6737334148";
     const String playStoreLink =
-        "https://play.google.com/store/apps/details?id=com.quadsu.app";
+        "https://play.google.com/store/apps/details?id=com.quadsuapp.app";
 
     String message = """
   Download the Quadsu app:

@@ -1,4 +1,4 @@
-package com.quadsu.app
+package com.quadsuapp.app
 
 import io.flutter.embedding.android.FlutterActivity
 

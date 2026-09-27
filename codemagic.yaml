@@ -4,7 +4,7 @@
 #   1. App Store Connect API key added to Codemagic under
 #      Teams > Integrations > App Store Connect, named exactly
 #      `codemagic_app_store_key` (see `integrations` below).
-#   2. Bundle ID `com.quadsu.app` registered at developer.apple.com.
+#   2. Bundle ID `com.quadsuapp.ios` registered at developer.apple.com.
 #   3. App record created in App Store Connect for that bundle ID.
 #
 # `flutter analyze` is deliberately not run here: the project reports ~700
@@ -23,7 +23,7 @@ workflows:
       cocoapods: default
       ios_signing:
         distribution_type: app_store
-        bundle_identifier: com.quadsu.app
+        bundle_identifier: com.quadsuapp.ios
 
     integrations:
       app_store_connect: codemagic_app_store_key

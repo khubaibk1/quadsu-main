@@ -33,7 +33,7 @@ if (keystorePropertiesFile.exists()) {
 }
 
 android {
-    namespace = "com.quadsu.app"
+    namespace = "com.quadsuapp.app"
     compileSdk = 36  // ✅ Must be 36 for new plugins
     ndkVersion = "27.0.12077973"
 
@@ -68,7 +68,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.quadsu.app"
+        applicationId = "com.quadsuapp.app"
         minSdkVersion = flutter.minSdkVersion
         targetSdk = 36 // Google Play requires API 36 for new apps and updates
         versionCode = flutterVersionCode.toInteger()

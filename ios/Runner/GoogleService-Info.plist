@@ -9,7 +9,7 @@
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>com.quadsu.app</string>
+	<string>com.quadsuapp.ios</string>
 	<key>PROJECT_ID</key>
 	<string>xenon-depth-470703-d5</string>
 	<key>STORAGE_BUCKET</key>
@@ -25,6 +25,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:688266075693:ios:eb2f9d2bb3c4adfc5422a4</string>
+	<string>1:688266075693:ios:d8ecb68a18d637c25422a4</string>
 </dict>
 </plist>

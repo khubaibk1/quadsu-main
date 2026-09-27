@@ -67,7 +67,7 @@
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
 			<key>CFBundleURLName</key>
-			<string>com.quadsu.app</string>
+			<string>com.quadsuapp.ios</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>guideapp</string>
