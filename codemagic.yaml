@@ -2,9 +2,12 @@
 #
 # Prerequisites, all done once in the Codemagic UI / Apple portals:
 #   1. App Store Connect API key added to Codemagic under
-#      Teams > Integrations > App Store Connect, named exactly
+#      Teams > Integrations > Developer Portal, named exactly
 #      `codemagic_app_store_key` (see `integrations` below).
-#   2. Bundle ID `com.quadsuapp.ios` registered at developer.apple.com.
+#   2. Bundle ID `com.quadsuapp.ios` registered at developer.apple.com, with
+#      an Apple Distribution certificate and an App Store provisioning profile
+#      for it under Code signing identities. The API key needs Admin access
+#      to generate the certificate.
 #   3. App record created in App Store Connect for that bundle ID.
 #
 # `flutter analyze` is deliberately not run here: the project reports ~700
@@ -49,11 +52,9 @@ workflows:
       - build/ios/ipa/*.ipa
       - /tmp/xcodebuild_logs/*.log
 
-    # Uploading to App Store Connect is left off for the first run so you get
-    # an IPA to inspect first. To enable, uncomment this block. Set
-    # submit_to_testflight to true once you are ready to distribute.
-    #
-    # publishing:
-    #   app_store_connect:
-    #     auth: integration
-    #     submit_to_testflight: false
+    # Uploads the IPA to App Store Connect and makes it available to internal
+    # TestFlight testers. It does not submit the build for App Store review.
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true
