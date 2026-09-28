@@ -2,19 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:pinput/pinput.dart';
 import 'package:provider/provider.dart';
 import 'package:quadsu_app/provider/my_auth_provider.dart';
-import 'package:quadsu_app/services/sendgrid_service.dart';
+import 'package:quadsu_app/services/otp_api_service.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 
 class OtpVerificationScreen extends StatefulWidget {
   final Map<String, dynamic> requestData;
   final String userType;
-  final String correctOtp;
 
   const OtpVerificationScreen({
     super.key,
     required this.requestData,
     required this.userType,
-    required this.correctOtp,
   });
 
   @override
@@ -26,15 +24,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
   final Color _darkBlue = const Color(0xff2B368B);
   final Color _orange = const Color(0xffF99B20);
   final Color _lightGrayBg = const Color(0xffF3F5F9);
-  String _currentOtp = '';
-
-  @override
-  void initState() {
-    super.initState();
-    _currentOtp = widget.correctOtp;
-  }
-
-  void _verifyAndSignup() {
+  Future<void> _verifyAndSignup() async {
     String enteredCode = _codeController.text.trim();
 
     if (enteredCode.isEmpty) {
@@ -50,10 +40,16 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
       return;
     }
 
-    if (enteredCode == _currentOtp) {
+    EasyLoading.show(status: 'Verifying...');
+    String? error =
+        await OtpApiService.verifyOtp(widget.requestData['email'], enteredCode);
+    EasyLoading.dismiss();
+    if (!mounted) return;
+
+    if (error == null) {
       Map<String, dynamic> verifiedRequest = Map.from(widget.requestData);
       verifiedRequest['email_verified'] = true;
-      
+
       Provider.of<MyAuthProvider>(context, listen: false).signUp(
         context,
         request: verifiedRequest,
@@ -61,8 +57,8 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Invalid verification code"),
+        SnackBar(
+          content: Text(error),
           backgroundColor: Colors.red,
         ),
       );
@@ -71,25 +67,19 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
 
   Future<void> _resendCode() async {
     EasyLoading.show(status: 'Sending new code...');
-    
-    String newOtp = SendGridService.generateOtp();
-    bool emailSent = await SendGridService.sendOtpEmail(
-      widget.requestData['email'],
-      newOtp,
-    );
-    
-    EasyLoading.dismiss();
 
-    if (emailSent) {
-      setState(() {
-        _currentOtp = newOtp;
-      });
+    String? error = await OtpApiService.sendOtp(widget.requestData['email']);
+
+    EasyLoading.dismiss();
+    if (!mounted) return;
+
+    if (error == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("New verification code sent!")),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Failed to send code. Please try again.")),
+        SnackBar(content: Text(error)),
       );
     }
   }

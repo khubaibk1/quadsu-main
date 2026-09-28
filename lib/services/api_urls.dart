@@ -16,6 +16,10 @@ class ApiUrls {
   ///DONE
   static const String resendEmail = '${baseUrl}resend-email';
 
+  static const String sendOtpEmail = '${baseUrl}send-otp-email';
+
+  static const String verifyOtp = '${baseUrl}verify-otp';
+
   ///DONE
   static const String forgetPassword = '${baseUrl}forget-password';
 

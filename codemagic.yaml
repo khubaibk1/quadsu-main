@@ -24,6 +24,10 @@ workflows:
       flutter: stable
       xcode: latest
       cocoapods: default
+      # Provides QUADSU_APP_SECRET (the backend's X-App-Secret), stored as a
+      # secure variable in Codemagic > Environment variables.
+      groups:
+        - quadsu_secrets
       ios_signing:
         distribution_type: app_store
         bundle_identifier: com.quadsuapp.ios
@@ -45,16 +49,22 @@ workflows:
 
       - name: Build IPA
         script: |
+          if [ -z "$QUADSU_APP_SECRET" ]; then
+            echo "QUADSU_APP_SECRET is not set; signup verification would fail."
+            exit 1
+          fi
           flutter build ipa --release \
-            --export-options-plist=/Users/builder/export_options.plist
+            --export-options-plist=/Users/builder/export_options.plist \
+            --dart-define=QUADSU_APP_SECRET="$QUADSU_APP_SECRET"
 
     artifacts:
       - build/ios/ipa/*.ipa
       - /tmp/xcodebuild_logs/*.log
 
-    # Uploads the IPA to App Store Connect and makes it available to internal
-    # TestFlight testers. It does not submit the build for App Store review.
+    # Uploads the IPA to App Store Connect, where it is available to internal
+    # TestFlight testers once processed. Submitting to external beta review
+    # stays off until the TestFlight test information is filled in.
     publishing:
       app_store_connect:
         auth: integration
-        submit_to_testflight: true
+        submit_to_testflight: false

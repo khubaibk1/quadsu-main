@@ -7,7 +7,7 @@ import 'package:quadsu_app/pages/auth_module/login_screen.dart';
 import 'package:quadsu_app/pages/auth_module/otp_verification_screen.dart';
 import 'package:quadsu_app/provider/my_auth_provider.dart';
 import 'package:quadsu_app/services/custom_navigation_services.dart';
-import 'package:quadsu_app/services/sendgrid_service.dart';
+import 'package:quadsu_app/services/otp_api_service.dart';
 import '../../functions/validation_functions.dart';
 
 class SignupScreen extends StatefulWidget {
@@ -79,15 +79,14 @@ class _SignupScreenState extends State<SignupScreen> {
         }
       }
 
-      // 2. Generate OTP & Send Email (Client Side)
+      // 2. Ask the backend to generate and email the code
       EasyLoading.show(status: 'Sending Verification Code...');
-      
-      String otp = SendGridService.generateOtp();
-      bool emailSent = await SendGridService.sendOtpEmail(emailAddress.text.trim(), otp);
-      
+
+      String? error = await OtpApiService.sendOtp(emailAddress.text.trim());
+
       EasyLoading.dismiss();
 
-      if (emailSent) {
+      if (error == null) {
         // 3. Navigate to OTP Screen
         Navigator.push(
           context,
@@ -95,13 +94,12 @@ class _SignupScreenState extends State<SignupScreen> {
             builder: (context) => OtpVerificationScreen(
               requestData: requestData, // Pass the form data forward
               userType: selectedUserType,
-              correctOtp: otp, // Pass the code generated here to check against
             ),
           ),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Failed to send verification email. Please try again.")),
+          SnackBar(content: Text(error)),
         );
       }
     }
