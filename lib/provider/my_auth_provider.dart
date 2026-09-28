@@ -76,6 +76,11 @@ class MyAuthProvider extends ChangeNotifier {
       await getUserData();
       return userDataNotifier.value;
     } else {
+      // iOS keeps the Firebase Auth session in the Keychain across
+      // reinstalls; without a saved app session it must not stay signed in.
+      if (FirebaseAuth.instance.currentUser != null) {
+        await FirebaseAuth.instance.signOut();
+      }
       return null;
     }
   }
