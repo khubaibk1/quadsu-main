@@ -30,6 +30,8 @@
 	<true/>
 	<key>NSCameraUsageDescription</key>
 	<string>This app needs access to the camera to take photos and agora videos call.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>QuadsU does not track your location. This permission may be requested by the video calling service to improve call quality.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>This app needs access to the microphone to capture audio for camera and agora videos call</string>
 	<key>NSPhotoLibraryUsageDescription</key>
