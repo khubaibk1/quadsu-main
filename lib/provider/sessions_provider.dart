@@ -90,6 +90,28 @@ class SessionsProvider extends ChangeNotifier {
     print("DEBUG: Session status: $sessionStatus");
     print("DEBUG: Page offset: ${getOffset(sessionStatus: sessionStatus)}");
 
+    // Always close the loading overlay and clear the loading flag, even when
+    // the response cannot be parsed; otherwise the spinner never goes away.
+    try {
+      await _fetchSessions(apiUrl: apiUrl, sessionStatus: sessionStatus);
+    } catch (e) {
+      print("ERROR: Parsing sessions failed: $e");
+      // Show the empty state instead of a blank tab.
+      if (getOffset(sessionStatus: sessionStatus) == 1) {
+        assignModel(
+            sessionStatus: sessionStatus,
+            sessionModel: SessionModel(sessions: []));
+        insertSessions(sessionStatus: sessionStatus, data: []);
+      }
+    } finally {
+      EasyLoading.dismiss();
+      changeSessionLoad(sessionStatus: sessionStatus);
+      notifyListeners();
+    }
+  }
+
+  Future<void> _fetchSessions(
+      {required String apiUrl, required int sessionStatus}) async {
     var jsonResponse = await NewestWebServices.getResponse(
       apiUrl: apiUrl,
       request: {
@@ -131,11 +153,7 @@ class SessionsProvider extends ChangeNotifier {
     } else {
       print("ERROR: Failed to fetch sessions - ${jsonResponse.message}");
       print("ERROR Details: ${jsonResponse.error}");
-        }
-
-    EasyLoading.dismiss();
-    changeSessionLoad(sessionStatus: sessionStatus);
-    notifyListeners();
+    }
   }
 
   cancelSession(

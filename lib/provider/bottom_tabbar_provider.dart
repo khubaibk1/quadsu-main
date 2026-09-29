@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:quadsu_app/constants/global_data.dart';
 import 'package:quadsu_app/constants/global_keys.dart';
-import 'package:quadsu_app/pages/student_module/session_screen.dart';
+import 'package:quadsu_app/pages/student_module/student_sessions_screen.dart';
 import 'package:quadsu_app/provider/my_auth_provider.dart';
 import '../pages/guide_module/edit_guide_profile_screen.dart';
 import '../pages/guide_module/guide_home_screen.dart';
@@ -21,7 +21,7 @@ class BottomTabBarProvider extends ChangeNotifier {
     const HomeScreen(),
     const MessagesScreen(),
     const MyStudentGuidesScreen(),
-    const SessionScreen(),
+    const StudentSessionsScreen(),
     const EditProfile(),
   ];
   var guideTabs = [

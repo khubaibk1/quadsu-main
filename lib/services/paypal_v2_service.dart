@@ -82,6 +82,9 @@ Future<Map<String, String>?> _createOrder(
           'return_url': _returnUrl,
           'cancel_url': _cancelUrl,
           'user_action': 'PAY_NOW',
+          // Open the card form first instead of the PayPal login page,
+          // matching the website's "Debit or Credit Card" option.
+          'landing_page': 'BILLING',
         }
       }),
     );

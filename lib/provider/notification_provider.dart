@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:quadsu_app/constants/api_keys.dart';
+import 'package:quadsu_app/constants/global_data.dart';
+import 'package:quadsu_app/constants/types/user_type.dart';
 import 'package:quadsu_app/services/api_urls.dart';
 import 'package:quadsu_app/services/custom_navigation_services.dart';
 import 'package:quadsu_app/services/firebase_services/firebase_push_notifications.dart';
@@ -10,6 +12,7 @@ import '../modal/notification_model.dart';
 import '../pages/guide_module/withdraw_history_screen.dart';
 import '../pages/student_module/booking_request_screen.dart';
 import '../pages/student_module/session_screen.dart';
+import '../pages/student_module/student_sessions_screen.dart';
 
   class NotificationProvider extends ChangeNotifier{
   int offset=1;
@@ -92,7 +95,11 @@ import '../pages/student_module/session_screen.dart';
     print('IN Handle Notification Function   $data $context');
     if(data[ApiKeys.screen]==Screens.booking)
       {
-        CustomNavigation.push(context: context, screen:  SessionScreen(bokingId: data[ApiKeys.bookingId].toString(),));
+        CustomNavigation.push(
+            context: context,
+            screen: usertype == UserType.student
+                ? StudentSessionsScreen(bookingId: data[ApiKeys.bookingId].toString())
+                : SessionScreen(bokingId: data[ApiKeys.bookingId].toString()));
       }
 
     if(data[ApiKeys.screen] == Screens.instant)
