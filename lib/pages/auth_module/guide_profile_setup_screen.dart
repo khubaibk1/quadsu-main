@@ -40,6 +40,7 @@ class _GuideProfileSetupScreenState extends State<GuideProfileSetupScreen> {
   TextEditingController venmoController = TextEditingController();
   TextEditingController phoneController = TextEditingController();
   TextEditingController locationAddress = TextEditingController();
+  TextEditingController streetAddress2Controller = TextEditingController();
   TextEditingController countryController = TextEditingController();
   TextEditingController stateController = TextEditingController();
   TextEditingController cityController = TextEditingController();
@@ -232,7 +233,7 @@ class _GuideProfileSetupScreenState extends State<GuideProfileSetupScreen> {
                     CustomTextField(
                       controller: locationAddress,
                       hintText: "",
-                      headingText: 'Street Address',
+                      headingText: 'Street Address 1',
                       headingFontSize: 15,
                       headingFontWeight: FontWeight.w600,
                       validator: (val) => ValidationFunction.requiredValidation(val),
@@ -312,32 +313,11 @@ class _GuideProfileSetupScreenState extends State<GuideProfileSetupScreen> {
                     vSizedBox2,
 
                     CustomTextField(
-                      controller: countryController,
-                      hintText: "",
-                      headingText: 'Country',
+                      controller: streetAddress2Controller,
+                      hintText: "Apartment, suite, unit (optional)",
+                      headingText: 'Street Address 2',
                       headingFontSize: 15,
                       headingFontWeight: FontWeight.w600,
-                      validator: (val) => ValidationFunction.requiredValidation(val),
-                    ),
-                    vSizedBox2,
-
-                    CustomTextField(
-                      controller: stateController,
-                      hintText: "",
-                      headingText: 'State',
-                      headingFontSize: 15,
-                      headingFontWeight: FontWeight.w600,
-                      validator: (val) => ValidationFunction.requiredValidation(val),
-                    ),
-                    vSizedBox2,
-
-                    CustomTextField(
-                      controller: pinCodeController,
-                      hintText: "",
-                      headingText: 'Zip Code',
-                      headingFontSize: 13,
-                      headingFontWeight: FontWeight.w600,
-                      validator: (val) => ValidationFunction.requiredValidation(val),
                     ),
                     vSizedBox2,
 
@@ -347,6 +327,47 @@ class _GuideProfileSetupScreenState extends State<GuideProfileSetupScreen> {
                       headingText: 'City',
                       headingFontSize: 15,
                       headingFontWeight: FontWeight.w600,
+                      validator: (val) => ValidationFunction.requiredValidation(val),
+                    ),
+                    vSizedBox2,
+
+                    CustomTextField(
+                      controller: stateController,
+                      hintText: "",
+                      headingText: 'State / Province',
+                      headingFontSize: 15,
+                      headingFontWeight: FontWeight.w600,
+                      validator: (val) => ValidationFunction.requiredValidation(val),
+                    ),
+                    vSizedBox2,
+
+                    CustomTextField(
+                      controller: pinCodeController,
+                      hintText: "",
+                      headingText: 'Zip Code / Postal Code',
+                      headingFontSize: 15,
+                      headingFontWeight: FontWeight.w600,
+                      validator: (val) => ValidationFunction.requiredValidation(val),
+                    ),
+                    vSizedBox2,
+
+                    CustomTextField(
+                      controller: countryController,
+                      hintText: "Select country",
+                      headingText: 'Country',
+                      headingFontSize: 15,
+                      headingFontWeight: FontWeight.w600,
+                      readOnly: true,
+                      suffix: const Icon(Icons.keyboard_arrow_down),
+                      onTap: () {
+                        showCountryPicker(
+                          context: context,
+                          favorite: const ['US', 'CA'],
+                          onSelect: (country) {
+                            countryController.text = country.name;
+                          },
+                        );
+                      },
                       validator: (val) => ValidationFunction.requiredValidation(val),
                     ),
                     vSizedBox2,
@@ -691,7 +712,12 @@ class _GuideProfileSetupScreenState extends State<GuideProfileSetupScreen> {
                             "venmo_username": venmoController.text.trim(),
                             "phone": phoneController.text.trim(),
                             "country_code": selectedCountryCode.value,
-                            "location": locationAddress.text.trim(),
+                            // The backend has a single street field, so both
+                            // street lines are sent together.
+                            "location": [
+                              locationAddress.text.trim(),
+                              streetAddress2Controller.text.trim(),
+                            ].where((line) => line.isNotEmpty).join(', '),
                             "country": countryController.text.trim(),
                             "state": stateController.text.trim(),
                             "city": cityController.text.trim(),

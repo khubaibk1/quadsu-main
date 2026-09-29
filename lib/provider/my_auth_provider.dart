@@ -22,6 +22,7 @@ import 'package:quadsu_app/pages/guide_module/guide_bottom_bar.dart';
 import 'package:quadsu_app/provider/app_language_provider.dart';
 import 'package:quadsu_app/provider/book_guide_provider.dart';
 import 'package:quadsu_app/provider/bottom_tabbar_provider.dart';
+import 'package:quadsu_app/provider/guide_schedule_provider.dart';
 import 'package:quadsu_app/provider/dash_board_provider.dart';
 import 'package:quadsu_app/provider/instant_booking_provider.dart';
 import 'package:quadsu_app/provider/notification_provider.dart';
@@ -214,7 +215,9 @@ class MyAuthProvider extends ChangeNotifier {
         getUserData();
         usertype = UserType.guide;
         bookingId = "";
+        await openScheduleForFreshGuide(context);
         CustomNavigation.pushReplacement(
+            // ignore: use_build_context_synchronously
             context: context, screen: const GuideBottomBarScreen());
       }
     } else {
@@ -233,6 +236,36 @@ class MyAuthProvider extends ChangeNotifier {
             context: context, screen: const BottomBarScreen());
       }
     }
+  }
+
+  /// The first time a guide reaches the app with no availability set (a
+  /// fresh account), open the schedule tab instead of home. Shown once per
+  /// account on this device.
+  Future<void> openScheduleForFreshGuide(BuildContext context) async {
+    final userId = userDataNotifier.value?.userId;
+    if (userId == null || userId == 0) return;
+    final shownKey = 'schedule_intro_shown_$userId';
+    if (sharedPreference.getBool(shownKey) == true) return;
+
+    final scheduleProvider =
+        Provider.of<GuideScheduleProvider>(context, listen: false);
+    final tabBarProvider =
+        Provider.of<BottomTabBarProvider>(context, listen: false);
+    try {
+      await scheduleProvider.fetchSchedule();
+    } catch (e) {
+      print('🟡 [SCHEDULE] Could not check schedule: $e');
+    }
+    final model = scheduleProvider.scheduleModel;
+    // Unknown (request failed): stay on home and check again next time.
+    if (model == null) return;
+
+    final hasSchedule = model.schedule.any((day) =>
+        !day.isOffDay && (day.startTime?.isNotEmpty ?? false));
+    if (!hasSchedule) {
+      tabBarProvider.changeIndex(index: 3);
+    }
+    await sharedPreference.setBool(shownKey, true);
   }
 
   List globalLanguages = [];
