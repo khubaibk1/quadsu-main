@@ -45,6 +45,10 @@ class SessionsProvider extends ChangeNotifier {
   SessionModel? completedSessionsModel;
   SessionModel? cancelledSessionsModel;
 
+  /// Tabs whose last load failed (so the screen can say so instead of
+  /// showing an empty list).
+  final Set<int> failedSessionStatuses = {};
+
   void reset() {
     allSessionsRefresh = false;
     runningSessionsRefresh = false;
@@ -92,11 +96,13 @@ class SessionsProvider extends ChangeNotifier {
 
     // Always close the loading overlay and clear the loading flag, even when
     // the response cannot be parsed; otherwise the spinner never goes away.
+    failedSessionStatuses.remove(sessionStatus);
     try {
       await _fetchSessions(apiUrl: apiUrl, sessionStatus: sessionStatus);
     } catch (e) {
       print("ERROR: Parsing sessions failed: $e");
-      // Show the empty state instead of a blank tab.
+      failedSessionStatuses.add(sessionStatus);
+      // Show the error state instead of a blank tab.
       if (getOffset(sessionStatus: sessionStatus) == 1) {
         assignModel(
             sessionStatus: sessionStatus,

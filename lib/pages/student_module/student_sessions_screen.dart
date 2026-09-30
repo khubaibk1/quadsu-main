@@ -165,14 +165,17 @@ class _StudentSessionsScreenState extends State<StudentSessionsScreen>
       return const SizedBox();
     }
     if (list.isEmpty) {
+      final failed = provider.failedSessionStatuses.contains(status);
       return RefreshIndicator(
         onRefresh: refresh,
         child: ListView(
-          children: const [
-            SizedBox(height: 160),
+          children: [
+            const SizedBox(height: 160),
             Center(
               child: Text(
-                'No sessions found.',
+                failed
+                    ? "Couldn't load sessions. Pull down to try again."
+                    : 'No sessions found.',
                 style: TextStyle(
                     color: textSlate,
                     fontSize: 14,

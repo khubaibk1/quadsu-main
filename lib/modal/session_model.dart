@@ -73,12 +73,10 @@ class Session {
           ? double.parse(json['serviceFee'].toString())
           : 0.0,
       tax: json['tax'] != null ? double.parse(json['tax'].toString()) : 0.0,
-      serviceFeePercentage: json['serviceFeePercentage'] != null
-          ? int.parse(json['serviceFeePercentage'].toString())
-          : 0,
-      taxPercentage: json['taxPercentage'] != null
-          ? int.parse(json['taxPercentage'].toString())
-          : 0,
+      // The backend may send these as decimals (e.g. 31.0062…).
+      serviceFeePercentage:
+          num.tryParse('${json['serviceFeePercentage']}')?.round() ?? 0,
+      taxPercentage: num.tryParse('${json['taxPercentage']}')?.round() ?? 0,
       scheduledSessions: json['booking_data'] != null
           ? ScheduledSessions.fromJson(json['booking_data'])
           : null,
