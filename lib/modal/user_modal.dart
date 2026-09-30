@@ -257,6 +257,11 @@ class GuidePrefrence {
   String studentsExperienceGuideLikes;
   int campusRepresentative;
   String? graduationYear; // Added graduationYear field
+  // Registration answers (guide profile setup), shown on the profile as
+  // About, Areas of Expertise and Interests.
+  String funFact;
+  String collegeDecision;
+  String schoolDescription;
 
   GuidePrefrence(
       {required this.id,
@@ -304,7 +309,10 @@ class GuidePrefrence {
       required this.hometown,
       required this.studentsExperienceGuideLikes,
       required this.campusRepresentative,
-      this.graduationYear});
+      this.graduationYear,
+      this.funFact = '',
+      this.collegeDecision = '',
+      this.schoolDescription = ''});
 
   factory GuidePrefrence.fromJson(Map<String, dynamic> json) {
     print('GuidePrefrence JSON: ${json.toString()}');
@@ -360,6 +368,11 @@ class GuidePrefrence {
           ? int.parse(json['campus_representative'].toString())
           : 0,
       graduationYear: json['graduation_year']?.toString(), // Convert to String
+      funFact: json['fun_fact']?.toString() ?? '',
+      collegeDecision:
+          (json['college_decision'] ?? json['college_factor'])?.toString() ?? '',
+      schoolDescription:
+          (json['school_description'] ?? json['school_desc'])?.toString() ?? '',
     );
   }
 
@@ -412,6 +425,9 @@ class GuidePrefrence {
         studentsExperienceGuideLikes ?? "";
     data['campus_representative'] = campusRepresentative ?? "";
     data['graduation_year'] = graduationYear ?? ""; // Added graduationYear to JSON
+    data['fun_fact'] = funFact;
+    data['college_decision'] = collegeDecision;
+    data['school_description'] = schoolDescription;
     return data;
   }
 }

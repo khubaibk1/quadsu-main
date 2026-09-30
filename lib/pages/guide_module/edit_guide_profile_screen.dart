@@ -77,9 +77,18 @@ class _EditGuideProfileScreenState extends State<EditGuideProfileScreen> {
             _firstNameController.text = data['first_name'] ?? userDataNotifier.value?.firstName ?? '';
             _lastNameController.text = data['last_name'] ?? userDataNotifier.value?.lastName ?? '';
             _specialityController.text = data['speciality'] ?? '';
-            _aboutController.text = data['about'] ?? '';
-            _interestsController.text = data['interests'] ?? '';
-            _expertiseController.text = data['expertise'] ?? '';
+            // Until the guide edits these, show their registration answers.
+            final prefs = userDataNotifier.value?.guidePrefrence;
+            String orRegistration(dynamic edited, String? answer) {
+              final text = edited?.toString() ?? '';
+              return text.trim().isNotEmpty ? text : (answer ?? '');
+            }
+            _aboutController.text =
+                orRegistration(data['about'], prefs?.funFact);
+            _interestsController.text =
+                orRegistration(data['interests'], prefs?.schoolDescription);
+            _expertiseController.text =
+                orRegistration(data['expertise'], prefs?.collegeDecision);
             _gradYearController.text = data['graduation_year']?.toString() ?? '';
             _responseTimeController.text = data['response_time'] ?? '';
 

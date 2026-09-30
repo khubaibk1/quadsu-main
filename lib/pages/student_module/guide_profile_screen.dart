@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:quadsu_app/services/api_urls.dart';
 import 'package:quadsu_app/constants/global_data.dart';
 import 'package:quadsu_app/modal/student_dashboard_model.dart';
+import 'package:quadsu_app/modal/user_modal.dart';
 import 'package:quadsu_app/provider/book_guide_provider.dart';
 import 'package:quadsu_app/provider/dash_board_provider.dart';
 import 'package:quadsu_app/provider/my_auth_provider.dart';
@@ -65,6 +66,30 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
       // For student viewing guide: data comes from guidePrefrence
       setState(() => _isLoading = false);
     }
+  }
+
+  /// Text for About / Areas of Expertise / Interests: the guide's own edit
+  /// first, then the registration answer, then the older profile field.
+  /// Registration answers come from the guide's own profile data, or from
+  /// the public profile once the backend includes them there.
+  String _profileText(
+    String edited,
+    Guide guideValue,
+    String Function(GuidePrefrence p) registrationAnswer,
+    String Function(GuidePrefrence p) olderField,
+  ) {
+    final prefs = <GuidePrefrence>[
+      if (guideValue.guidePrefrence != null) guideValue.guidePrefrence!,
+      if (userDataNotifier.value?.userId == widget.guideId &&
+          userDataNotifier.value?.guidePrefrence != null)
+        userDataNotifier.value!.guidePrefrence!,
+    ];
+    final candidates = [
+      edited,
+      for (final p in prefs) registrationAnswer(p),
+      for (final p in prefs) olderField(p),
+    ];
+    return candidates.firstWhere((t) => t.trim().isNotEmpty, orElse: () => '');
   }
 
   // ================= API LOGIC (Isolated) =================
@@ -411,10 +436,12 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
                                       else
                                         Text(
                                           // Fallback to guideValue (profileHeadline) if controller is empty
-                                          _aboutController.text.isNotEmpty
-                                              ? _aboutController.text
-                                              : (guideValue.guidePrefrence
-                                                      ?.profileHeadline ??
+                                          _profileText(
+                                                  _aboutController.text,
+                                                  guideValue,
+                                                  (p) => p.funFact,
+                                                  (p) => p.profileHeadline)
+                                              .ifEmpty(
                                                   "No description available."),
                                           style: const TextStyle(
                                               color: Color.fromARGB(
@@ -443,14 +470,11 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
                                       ] else ...[
                                         Builder(builder: (context) {
                                           // Use studentTypes field from guidePrefrence
-                                          String displayText =
-                                              _expertiseController.text;
-                                          if (displayText.isEmpty) {
-                                            displayText = guideValue
-                                                    .guidePrefrence
-                                                    ?.studentTypes ??
-                                                "";
-                                          }
+                                          String displayText = _profileText(
+                                              _expertiseController.text,
+                                              guideValue,
+                                              (p) => p.collegeDecision,
+                                              (p) => p.studentTypes);
 
                                           if (displayText.isNotEmpty) {
                                             return Wrap(
@@ -492,13 +516,11 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
                                       ] else ...[
                                         Builder(builder: (context) {
                                           // Use hobbies field from guidePrefrence
-                                          String displayText =
-                                              _interestsController.text;
-                                          if (displayText.isEmpty) {
-                                            displayText = guideValue
-                                                    .guidePrefrence?.hobbies ??
-                                                "";
-                                          }
+                                          String displayText = _profileText(
+                                              _interestsController.text,
+                                              guideValue,
+                                              (p) => p.schoolDescription,
+                                              (p) => p.hobbies);
 
                                           if (displayText.isNotEmpty) {
                                             return Wrap(
@@ -978,4 +1000,8 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
       if (mounted) setState(() => _isChatLoading = false);
     }
   }
+}
+
+extension on String {
+  String ifEmpty(String fallback) => trim().isEmpty ? fallback : this;
 }
