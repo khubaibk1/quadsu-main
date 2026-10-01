@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:quadsu_app/functions/custom_time_functions.dart';
 import 'package:quadsu_app/modal/session_model.dart';
 import 'package:quadsu_app/pages/bottom_sheet/rating_sheet.dart';
@@ -211,7 +212,14 @@ class _StudentSessionsScreenState extends State<StudentSessionsScreen>
     final statusColor = SessionStatus.getColor(session.sessionStatus);
     final isCompleted = session.sessionStatus == SessionStatus.completed;
     final rating = scheduled?.rating ?? 0.0;
-    final canJoin = session.meetingUrl.isNotEmpty &&
+    final isCancelled = session.sessionStatus == SessionStatus.cancelled;
+    // Google Meet link created for the booking (same as the guide's card).
+    final meetLink = scheduled?.meetingLink ?? '';
+    final hasMeetLink = meetLink.isNotEmpty && !isCancelled;
+    final canOpenMeet = hasMeetLink && !_isPastDate(scheduled?.date ?? '');
+    // Older bookings use the in-app video call instead.
+    final canJoinInApp = meetLink.isEmpty &&
+        session.meetingUrl.isNotEmpty &&
         session.sessionStatus == SessionStatus.pending;
 
     return Container(
@@ -347,7 +355,20 @@ class _StudentSessionsScreenState extends State<StudentSessionsScreen>
             ],
           ),
 
-          if (canJoin) ...[
+          if (hasMeetLink) ...[
+            const SizedBox(height: 20),
+            _primaryButton(
+              label: 'Join Meeting',
+              icon: Icons.videocam,
+              enabled: canOpenMeet,
+              onTap: () async {
+                final uri = Uri.tryParse(meetLink);
+                if (uri != null && await canLaunchUrl(uri)) {
+                  await launchUrl(uri, mode: LaunchMode.externalApplication);
+                }
+              },
+            ),
+          ] else if (canJoinInApp) ...[
             const SizedBox(height: 20),
             _primaryButton(
               label: 'Join Meeting',
@@ -438,7 +459,10 @@ class _StudentSessionsScreenState extends State<StudentSessionsScreen>
     scheduled.studentPrefrence = session.student;
     showCustomBottomSheet(
       context: context,
-      child: ScheduledDetailsSheet(scheduledSessions: scheduled),
+      child: ScheduledDetailsSheet(
+        scheduledSessions: scheduled,
+        taxPercentage: session.taxPercentage > 0 ? session.taxPercentage : 6,
+      ),
     );
   }
 
@@ -470,17 +494,25 @@ class _StudentSessionsScreenState extends State<StudentSessionsScreen>
     );
   }
 
+  bool _isPastDate(String dateStr) {
+    final date = DateTime.tryParse(dateStr);
+    if (date == null) return false;
+    final now = DateTime.now();
+    return date.isBefore(DateTime(now.year, now.month, now.day));
+  }
+
   Widget _primaryButton(
       {required String label,
       required IconData icon,
-      required VoidCallback onTap}) {
+      required VoidCallback onTap,
+      bool enabled = true}) {
     return GestureDetector(
-      onTap: onTap,
+      onTap: enabled ? onTap : null,
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.symmetric(vertical: 14),
         decoration: BoxDecoration(
-          color: primaryBlue,
+          color: enabled ? primaryBlue : Colors.grey[400],
           borderRadius: BorderRadius.circular(12),
         ),
         child: Row(

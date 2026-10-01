@@ -16,9 +16,13 @@ import '../../widget/custom_text.dart';
 class ScheduledDetailsSheet extends StatelessWidget {
   final ScheduledSessions scheduledSessions;
 
+  /// Tax rate included in what the student paid.
+  final int taxPercentage;
+
   const ScheduledDetailsSheet({
     super.key,
     required this.scheduledSessions,
+    this.taxPercentage = 6,
   });
 
   @override
@@ -119,27 +123,10 @@ class ScheduledDetailsSheet extends StatelessWidget {
         ExpandedRowWidget(
             title: 'Total no of hours',
             subTitle: scheduledSessions.totalHours.toString() ?? ""),
-        ExpandedRowWidget(
-            title: 'Per hour amount',
-            subTitle:
-                '$cur${formatToTwoDecimalPlaces(scheduledSessions.perHoursCost?.toDouble() ?? 0.0)}'),
-        ExpandedRowWidget(
-            title: 'Hours total',
-            subTitle:
-                '$cur${formatToTwoDecimalPlaces(scheduledSessions.totalHoursCost?.toDouble() ?? 0.0)}'),
-        ExpandedRowWidget(
-            title: 'Service fee(20%)',
-            subTitle:
-                '$cur${formatToTwoDecimalPlaces(scheduledSessions.serviceFee?.toDouble() ?? 0.0)}'),
-        ExpandedRowWidget(
-            title: 'Tax(6%)',
-            subTitle:
-                '$cur${formatToTwoDecimalPlaces(scheduledSessions.tax?.toDouble() ?? 0.0)}'),
-        ExpandedRowWidget(
-            title: 'Grand Total',
-            subTitle:
-                '$cur${formatToTwoDecimalPlaces(scheduledSessions.totalPaidAmount?.toDouble() ?? 0.0)}',
-            fontWeight: FontWeight.w600),
+        if (usertype == UserType.student)
+          ..._studentAmounts()
+        else
+          ..._guideAmounts(),
         // if (isComplete == SessionStatus.completed) vSizedBox2,
         // if (isComplete == SessionStatus.completed)
         //   CustomButton(
@@ -226,5 +213,49 @@ class ScheduledDetailsSheet extends StatelessWidget {
           )
       ],
     );
+  }
+
+  String _money(double value) => '$cur${formatToTwoDecimalPlaces(value)}';
+
+  /// What the student paid, as on the website's booking summary:
+  /// session cost + tax = total paid (the total already includes tax).
+  List<Widget> _studentAmounts() {
+    final totalPaid = scheduledSessions.totalHoursCost ??
+        (scheduledSessions.perHoursCost ?? 0) *
+            (scheduledSessions.totalHours ?? 1);
+    final sessionCost = totalPaid / (1 + taxPercentage / 100);
+    return [
+      ExpandedRowWidget(title: 'Session cost', subTitle: _money(sessionCost)),
+      ExpandedRowWidget(
+          title: 'Tax ($taxPercentage%)',
+          subTitle: _money(totalPaid - sessionCost)),
+      ExpandedRowWidget(
+          title: 'Grand Total',
+          subTitle: _money(totalPaid),
+          fontWeight: FontWeight.w600),
+    ];
+  }
+
+  /// The guide's view: what the student paid, the QuadsU fee and the
+  /// guide's payout.
+  List<Widget> _guideAmounts() {
+    final hoursTotal = scheduledSessions.totalHoursCost ?? 0.0;
+    final fee = scheduledSessions.serviceFee ?? 0.0;
+    final feePercent = hoursTotal > 0 ? (fee / hoursTotal * 100).round() : 0;
+    return [
+      ExpandedRowWidget(
+          title: 'Per hour amount',
+          subTitle: _money(scheduledSessions.perHoursCost ?? 0.0)),
+      ExpandedRowWidget(title: 'Hours total', subTitle: _money(hoursTotal)),
+      ExpandedRowWidget(
+          title: 'Service fee($feePercent%)', subTitle: _money(fee)),
+      ExpandedRowWidget(
+          title: 'Tax($taxPercentage%)',
+          subTitle: _money(scheduledSessions.tax ?? 0.0)),
+      ExpandedRowWidget(
+          title: 'Grand Total',
+          subTitle: _money(scheduledSessions.totalPaidAmount ?? 0.0),
+          fontWeight: FontWeight.w600),
+    ];
   }
 }

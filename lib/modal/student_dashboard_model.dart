@@ -98,6 +98,8 @@ class ScheduledSessions {
   int? sessionStatus;
   int? cancelButtonStatus;
   String meetingStatus="";
+  /// Google Meet link created for the booking (booking_data.meeting_link).
+  String meetingLink = '';
   String meetingUrl="";
 
   ScheduledSessions(
@@ -156,6 +158,7 @@ class ScheduledSessions {
     endTime = json['end_time'];
     comment = json['comment'];
     sessionStatus = status;
+    meetingLink = json['meeting_link']?.toString() ?? '';
 
     studentId = json['student_id'];
     totalHours = json['total_hours'] != null
