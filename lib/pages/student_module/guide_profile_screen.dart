@@ -420,127 +420,39 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
 
                                       _buildDivider(),
 
-                                      // --- B. ABOUT SECTION ---
-                                      _buildSectionTitle('About'),
-                                      const SizedBox(height: 12),
-                                      if (_isEditing)
-                                        TextField(
-                                          controller: _aboutController,
-                                          maxLines: 5,
-                                          decoration: const InputDecoration(
-                                            hintText:
-                                                "Tell us about yourself...",
-                                            border: OutlineInputBorder(),
-                                          ),
-                                        )
-                                      else
-                                        Text(
-                                          // Fallback to guideValue (profileHeadline) if controller is empty
-                                          _profileText(
-                                                  _aboutController.text,
-                                                  guideValue,
-                                                  (p) => p.funFact,
-                                                  (p) => p.profileHeadline)
-                                              .ifEmpty(
-                                                  "No description available."),
-                                          style: const TextStyle(
-                                              color: Color.fromARGB(
-                                                  255, 121, 121, 121),
-                                              fontSize: 13,
-                                              height: 1.5),
-                                        ),
-
+                                      // --- B. REGISTRATION ANSWERS ---
+                                      // Titles and order match the website.
+                                      ..._buildAnswerSection(
+                                        title:
+                                            'The most important factor that made me choose my college',
+                                        controller: _expertiseController,
+                                        text: _profileText(
+                                            _expertiseController.text,
+                                            guideValue,
+                                            (p) => p.collegeDecision,
+                                            (p) => p.studentTypes),
+                                      ),
                                       _buildDivider(),
-
-                                      // --- C. EXPERTISE ---
-                                      _buildSectionTitle('Areas of Expertise'),
-                                      const SizedBox(height: 12),
-                                      if (_isEditing) ...[
-                                        TextField(
-                                          controller: _expertiseController,
-                                          maxLines: 2,
-                                          decoration: const InputDecoration(
-                                            hintText:
-                                                "Physics, Math, Chemistry (Separate with commas)",
-                                            helperText:
-                                                "Separate items with commas",
-                                            border: OutlineInputBorder(),
-                                          ),
-                                        ),
-                                      ] else ...[
-                                        Builder(builder: (context) {
-                                          // Use studentTypes field from guidePrefrence
-                                          String displayText = _profileText(
-                                              _expertiseController.text,
-                                              guideValue,
-                                              (p) => p.collegeDecision,
-                                              (p) => p.studentTypes);
-
-                                          if (displayText.isNotEmpty) {
-                                            return Wrap(
-                                              spacing: 10,
-                                              runSpacing: 10,
-                                              children: displayText
-                                                  .split(',')
-                                                  .map((e) => _buildChip(
-                                                      e.trim(),
-                                                      isBlue: true))
-                                                  .toList(),
-                                            );
-                                          } else {
-                                            return const Text(
-                                                "No expertise listed.",
-                                                style: TextStyle(
-                                                    color: Colors.grey));
-                                          }
-                                        }),
-                                      ],
-
+                                      ..._buildAnswerSection(
+                                        title:
+                                            'Describe your school to prospective students',
+                                        controller: _interestsController,
+                                        text: _profileText(
+                                            _interestsController.text,
+                                            guideValue,
+                                            (p) => p.schoolDescription,
+                                            (p) => p.hobbies),
+                                      ),
                                       _buildDivider(),
-
-                                      // --- D. INTERESTS ---
-                                      _buildSectionTitle('Interests'),
-                                      const SizedBox(height: 12),
-                                      if (_isEditing) ...[
-                                        TextField(
-                                          controller: _interestsController,
-                                          maxLines: 2,
-                                          decoration: const InputDecoration(
-                                            hintText:
-                                                "Hiking, Reading, Gaming (Separate with commas)",
-                                            helperText:
-                                                "Separate items with commas",
-                                            border: OutlineInputBorder(),
-                                          ),
-                                        ),
-                                      ] else ...[
-                                        Builder(builder: (context) {
-                                          // Use hobbies field from guidePrefrence
-                                          String displayText = _profileText(
-                                              _interestsController.text,
-                                              guideValue,
-                                              (p) => p.schoolDescription,
-                                              (p) => p.hobbies);
-
-                                          if (displayText.isNotEmpty) {
-                                            return Wrap(
-                                              spacing: 10,
-                                              runSpacing: 10,
-                                              children: displayText
-                                                  .split(',')
-                                                  .map((e) => _buildChip(
-                                                      e.trim(),
-                                                      isBlue: false))
-                                                  .toList(),
-                                            );
-                                          } else {
-                                            return const Text(
-                                                "No interests listed.",
-                                                style: TextStyle(
-                                                    color: Colors.grey));
-                                          }
-                                        }),
-                                      ],
+                                      ..._buildAnswerSection(
+                                        title: 'Fun Fact About Me!',
+                                        controller: _aboutController,
+                                        text: _profileText(
+                                            _aboutController.text,
+                                            guideValue,
+                                            (p) => p.funFact,
+                                            (p) => p.profileHeadline),
+                                      ),
 
                                       _buildDivider(),
 
@@ -822,6 +734,34 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
     );
   }
 
+  /// One registration-answer section: a title and a paragraph, or a text
+  /// field while the guide edits their own profile.
+  List<Widget> _buildAnswerSection({
+    required String title,
+    required TextEditingController controller,
+    required String text,
+  }) {
+    return [
+      _buildSectionTitle(title),
+      const SizedBox(height: 12),
+      if (_isEditing)
+        TextField(
+          controller: controller,
+          maxLines: 5,
+          minLines: 2,
+          decoration: const InputDecoration(border: OutlineInputBorder()),
+        )
+      else
+        Text(
+          text.ifEmpty('Not added yet.'),
+          style: const TextStyle(
+              color: Color.fromARGB(255, 121, 121, 121),
+              fontSize: 13,
+              height: 1.5),
+        ),
+    ];
+  }
+
   Widget _buildSectionTitle(String title) {
     return Text(title,
         style: const TextStyle(
@@ -849,24 +789,6 @@ class _GuideProfileScreenState extends State<GuideProfileScreen> {
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildChip(String label, {required bool isBlue}) {
-    if (label.isEmpty) return const SizedBox();
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      decoration: BoxDecoration(
-        color: isBlue ? kChipBlue : kBgGrey,
-        borderRadius: BorderRadius.circular(25),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-            color: isBlue ? Colors.white : kPrimaryBlue,
-            fontWeight: FontWeight.w600,
-            fontSize: 13),
-      ),
     );
   }
 

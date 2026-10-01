@@ -302,8 +302,10 @@ class _EditGuideProfileScreenState extends State<EditGuideProfileScreen> {
                             _buildUniversityField(myAuthProvider),
                             _buildProfileItem("Speciality / Major", _specialityController, Icons.book_outlined),
                             _buildProfileItem("Graduation Year", _gradYearController, Icons.calendar_today, keyboardType: TextInputType.number),
-                            _buildProfileItem("Bio / About", _aboutController, Icons.person_outline, maxLines: 4),
-                            _buildProfileItem("Interests", _interestsController, Icons.star_border),
+                            // Same titles and order as the website profile.
+                            _buildProfileItem("The most important factor that made me choose my college", _expertiseController, Icons.school_outlined, maxLines: 4),
+                            _buildProfileItem("Describe your school to prospective students", _interestsController, Icons.apartment_outlined, maxLines: 4),
+                            _buildProfileItem("Fun Fact About Me!", _aboutController, Icons.person_outline, maxLines: 4),
                             
                             const SizedBox(height: 12),
                             const Text("Languages", style: TextStyle(color: kTextGrey, fontSize: 13, fontWeight: FontWeight.w500)),
